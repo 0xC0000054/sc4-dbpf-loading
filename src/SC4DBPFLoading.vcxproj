@@ -41,6 +41,7 @@
     <ClInclude Include="..\vendor\gzcom-dll\include\cIGZDBSegmentPackedFile.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cIGZFrameWork.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cIGZPersistDBSegment.h" />
+    <ClInclude Include="..\vendor\gzcom-dll\include\cIGZPersistDBSegmentMultiPackedFiles.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cIGZPersistResourceKeyFilter.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cIGZPersistResourceKeyList.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\GZServPtrs.h" />

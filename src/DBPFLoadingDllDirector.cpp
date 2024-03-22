@@ -22,6 +22,7 @@
 #include "cIGZDBSegmentPackedFile.h"
 #include "cIGZFrameWork.h"
 #include "cIGZPersistDBSegment.h"
+#include "cIGZPersistDBSegmentMultiPackedFiles.h"
 #include "cIGZPersistResourceKeyFilter.h"
 #include "cIGZPersistResourceKeyList.h"
 #include "cIGZPersistResourceManager.h"
@@ -360,7 +361,9 @@ namespace
 		// Message boxes will be shown before and after the resource loading so that the user can start
 		// and stop a program that logs the Windows API calls issued by the game.
 		// For example, Sysinternals Process Monitor.
-		WindowsAPILogWait
+		WindowsAPILogWait,
+		// Writes a list of the loaded fies to the plugin's log file.
+		ListLoadedFiles,
 	};
 
 	static ResourceLoadingTraceOption resourceLoadingTraceOption = ResourceLoadingTraceOption::None;
@@ -411,6 +414,7 @@ namespace
 			result = WindowsAPILogSetupResources(pSC4App);
 			break;
 		case ResourceLoadingTraceOption::None:
+		case ResourceLoadingTraceOption::ListLoadedFiles:
 		default:
 			result = RealSetupResources(pSC4App);
 			break;
@@ -419,39 +423,10 @@ namespace
 		return result;
 	}
 
-	ResourceLoadingTraceOption GetResourceLoadingTraceOption()
-	{
-		ResourceLoadingTraceOption option = ResourceLoadingTraceOption::None;
-
-		cIGZFrameWork* const pFramework = RZGetFramework();
-
-		cIGZCmdLine* const pCmdLine = pFramework->CommandLine();
-
-		cRZBaseString value;
-
-		if (pCmdLine->IsSwitchPresent(cRZBaseString("StartupDBPFLoadTrace"), value, true))
-		{
-			std::string_view valueAsStringView = value.ToChar();
-
-			if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "ShowLoadTime"sv))
-			{
-				option = ResourceLoadingTraceOption::ShowLoadTime;
-			}
-			else if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "WinAPI"sv))
-			{
-				option = ResourceLoadingTraceOption::WindowsAPILogWait;
-			}
-		}
-
-		return option;
-	}
-
-	void InstallSC4AppSetupResourcesHook(uint16_t gameVersion, ResourceLoadingTraceOption traceOption)
+	void InstallSC4AppSetupResourcesHook(uint16_t gameVersion)
 	{
 		if (gameVersion == 641)
 		{
-			resourceLoadingTraceOption = traceOption;
-
 			Logger& logger = Logger::GetInstance();
 
 			try
@@ -517,11 +492,12 @@ namespace
 			InstallMissingPluginDialogHexPatch(gameVersion);
 			IncreaseRZFileDefaultBufferSize(gameVersion);
 
-			ResourceLoadingTraceOption traceOption = GetResourceLoadingTraceOption();
-
-			if (traceOption != ResourceLoadingTraceOption::None)
+			switch (resourceLoadingTraceOption)
 			{
-				InstallSC4AppSetupResourcesHook(gameVersion, traceOption);
+			case ResourceLoadingTraceOption::ShowLoadTime:
+			case ResourceLoadingTraceOption::WindowsAPILogWait:
+				InstallSC4AppSetupResourcesHook(gameVersion);
+				break;
 			}
 		}
 		else
@@ -644,7 +620,7 @@ public:
 		logFilePath /= PluginLogFileName;
 
 		Logger& logger = Logger::GetInstance();
-		logger.Init(logFilePath, LogLevel::Error);
+		logger.Init(logFilePath, LogLevel::Error, false);
 		logger.WriteLogFileHeader("SC4DBPFLoading v" PLUGIN_VERSION_STR);
 	}
 
@@ -657,27 +633,50 @@ private:
 
 	bool OnStart(cIGZCOM* pCOM)
 	{
+		cIGZFrameWork* const pFramework = pCOM->FrameWork();
+		cIGZCmdLine* const pCmdLine = pFramework->CommandLine();
+
+		resourceLoadingTraceOption = ResourceLoadingTraceOption::None;
+
+		cRZBaseString value;
+
+		if (pCmdLine->IsSwitchPresent(cRZBaseString("StartupDBPFLoadTrace"), value, true))
+		{
+			std::string_view valueAsStringView = value.ToChar();
+
+			if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "ShowLoadTime"sv))
+			{
+				resourceLoadingTraceOption = ResourceLoadingTraceOption::ShowLoadTime;
+			}
+			else if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "WinAPI"sv))
+			{
+				resourceLoadingTraceOption = ResourceLoadingTraceOption::WindowsAPILogWait;
+			}
+			else if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "ListLoadedFiles"sv))
+			{
+				resourceLoadingTraceOption = ResourceLoadingTraceOption::ListLoadedFiles;
+			}
+		}
+
 		InstallMemoryPatches();
 
-#ifdef _DEBUG
-		Trace_GZDBSegmentPackedFile_GetResourceKeys(pCOM);
+		//Trace_GZDBSegmentPackedFile_GetResourceKeys(pCOM);
 
-		cIGZFrameWork* const pFramework = pCOM->FrameWork();
-
-		if (pFramework->GetState() < cIGZFrameWork::kStatePreAppInit)
+		if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ListLoadedFiles)
 		{
-			pFramework->AddHook(this);
+			if (pFramework->GetState() < cIGZFrameWork::kStatePreAppInit)
+			{
+				pFramework->AddHook(this);
+			}
+			else
+			{
+				PreAppInit();
+			}
 		}
-		else
-		{
-			PreAppInit();
-		}
-#endif // _DEBUG
 
 		return true;
 	}
 
-#ifdef _DEBUG
 	bool PreAppInit()
 	{
 		//InstallDoesDirectoryExistHook();
@@ -688,33 +687,69 @@ private:
 	bool PostAppInit()
 	{
 		//RemoveDoesDirectoryExistHook();
-#if 1
-		cIGZPersistResourceManagerPtr pResMan;
 
-		if (pResMan)
+		if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ListLoadedFiles)
 		{
-			uint32_t segmentCount = pResMan->GetSegmentCount();
+			cIGZPersistResourceManagerPtr pResMan;
 
-			PrintLineToDebugOutputFormatted("%u segments", segmentCount);
-
-			// We log the segments in reverse order so that the earlies values are shown first.
-			for (int64_t i = static_cast<int64_t>(segmentCount) - 1; i >= 0; i--)
+			if (pResMan)
 			{
-				cIGZPersistDBSegment* segment = pResMan->GetSegmentByIndex(static_cast<uint32_t>(i));
+				Logger& logger = Logger::GetInstance();
 
-				if (segment)
+				uint32_t segmentCount = pResMan->GetSegmentCount();
+
+				// We log the segments in reverse order so that the earliest values are shown first.
+				// The resource manager adds new segments to the start of the list instead of the end.
+				for (int64_t i = static_cast<int64_t>(segmentCount) - 1; i >= 0; i--)
 				{
-					cRZBaseString path;
+					cIGZPersistDBSegment* segment = pResMan->GetSegmentByIndex(static_cast<uint32_t>(i));
 
-					segment->GetPath(path);
+					if (segment)
+					{
+						cRZAutoRefCount<cIGZPersistDBSegmentMultiPackedFiles> multiPackedFile;
 
-					PrintLineToDebugOutput(path.ToChar());
+						if (segment->QueryInterface(GZIID_cIGZPersistDBSegmentMultiPackedFiles, multiPackedFile.AsPPVoid()))
+						{
+							// Multi-packed files are used as a container for the DAT files that are loaded from a
+							// directory and its sub-directories.
+							//
+							// This design was likely used to allow DAT files in sub-directories to override items
+							// from the directories that are loaded earlier.
+							// Internally it appears use a combination of a dictionary/unordered_map that maps each TGI
+							// to the DAT that contains it, and a list of segments (DAT files) for GetSegmentByIndex.
+
+							uint32_t multiPackSegmentCount = multiPackedFile->GetSegmentCount();
+
+							// The multi-packed files are already in the correct order, with new items added to
+							// the end of the list.
+							for (uint32_t j = 0; j < multiPackSegmentCount; j++)
+							{
+								cIGZPersistDBSegment* multiPackedSegment = multiPackedFile->GetSegmentByIndex(j);
+
+								if (multiPackedSegment)
+								{
+									cRZBaseString path;
+
+									multiPackedSegment->GetPath(path);
+
+									logger.WriteLine(LogLevel::Info, path.ToChar());
+								}
+							}
+						}
+						else
+						{
+							cRZBaseString path;
+
+							segment->GetPath(path);
+
+							logger.WriteLine(LogLevel::Info, path.ToChar());
+						}
+					}
 				}
 			}
 		}
-#endif // 0
 
-#if 1
+#if 0
 		cIGZFrameWork* const pFramework = RZGetFramework();
 
 		cIGZApp* const pApp = pFramework->Application();
@@ -742,12 +777,9 @@ private:
 			pSC4App->GetExceptionReportsDirectory(m);
 			pSC4App->GetTestScriptDirectory(n);
 		}
-#endif // 0
-
-
+#endif
 		return true;
 	}
-#endif // _DEBUG
 
 };
 

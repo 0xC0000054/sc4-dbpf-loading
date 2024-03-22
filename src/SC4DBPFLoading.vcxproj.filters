@@ -140,6 +140,9 @@
     <ClInclude Include="StringViewUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\vendor\gzcom-dll\include\cIGZPersistDBSegmentMultiPackedFiles.h">
+      <Filter>Header Files\GZCOM</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
