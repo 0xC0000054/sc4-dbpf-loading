@@ -8,7 +8,7 @@ namespace
 {
 
 
-	static constexpr uintptr_t ReadWithCount_Inject = 0x9192D7;
+	static constexpr uintptr_t ReadWithCount_Inject = 0x9192F1;
 	static constexpr uintptr_t ReadWithCount_Return_Jump = 0x9193DC;
 	static constexpr uintptr_t ReadWithCount_ClearBufferLoop_Jump = 0x919386;
 	static constexpr uintptr_t ReadWithCount_CopyDataFromBuffer_Jump = 0x919304;
