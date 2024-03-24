@@ -104,11 +104,11 @@ namespace
 
 		__asm
 		{
-			push edx;
 			mov pThis, esi;
-			mov edx, dword ptr[esp + 12];
-			mov dword ptr[numBytesToRead], edx;
-			pop edx;
+			// The EBX register is used to by the calling code to
+			// store  the number of bytes to read.
+			mov ebx, dword ptr[edi];
+			mov dword ptr[numBytesToRead], ebx;
 			pushad;
 		}
 
