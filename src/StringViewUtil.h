@@ -23,4 +23,11 @@ namespace StringViewUtil
 		const std::string_view& lhs,
 		const std::string_view& rhs);
 
+	bool EqualsIgnoreCase(
+		const std::wstring_view& lhs,
+		const std::wstring_view& rhs);
+
+	bool StartsWithIgnoreCase(
+		const std::wstring_view& lhs,
+		const std::wstring_view& rhs);
 }

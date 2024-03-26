@@ -12,6 +12,8 @@
 
 #include "version.h"
 #include "Logger.h"
+#include "SC4DBPFLoading.h"
+#include "SC4DirectoryEnumerator.h"
 #include "SC4VersionDetection.h"
 #include "Stopwatch.h"
 #include "StringViewUtil.h"
@@ -366,6 +368,8 @@ namespace
 		ListLoadedFiles,
 	};
 
+#define SC4_CUSTOM_RESOURCE_LOADING
+
 	static ResourceLoadingTraceOption resourceLoadingTraceOption = ResourceLoadingTraceOption::None;
 
 	typedef bool(__thiscall* pfn_cSC4App_SetupResources)(void* pSC4App);
@@ -377,8 +381,11 @@ namespace
 		Stopwatch sw;
 		sw.Start();
 
+#ifdef SC4_CUSTOM_RESOURCE_LOADING
+		bool result = SC4DBPFLoading::SetupResources();
+#else
 		bool result = RealSetupResources(pSC4App);
-
+#endif
 		sw.Stop();
 
 		char buffer[256]{};
@@ -394,8 +401,11 @@ namespace
 	{
 		MessageBoxA(nullptr, "Start your Process Monitor trace and press OK.", "SC4DBPFLoading", 0);
 
+#ifdef SC4_CUSTOM_RESOURCE_LOADING
+		bool result = SC4DBPFLoading::SetupResources();
+#else
 		bool result = RealSetupResources(pSC4App);
-
+#endif
 		MessageBoxA(nullptr, "Stop your Process Monitor trace and press OK.", "SC4DBPFLoading", 0);
 
 		return result;
@@ -416,7 +426,11 @@ namespace
 		case ResourceLoadingTraceOption::None:
 		case ResourceLoadingTraceOption::ListLoadedFiles:
 		default:
+#ifdef SC4_CUSTOM_RESOURCE_LOADING
+			result = SC4DBPFLoading::SetupResources();
+#else
 			result = RealSetupResources(pSC4App);
+#endif
 			break;
 		}
 
@@ -491,14 +505,7 @@ namespace
 			InstallDBPFOpenFindHeaderRecordHook(gameVersion);
 			InstallMissingPluginDialogHexPatch(gameVersion);
 			IncreaseRZFileDefaultBufferSize(gameVersion);
-
-			switch (resourceLoadingTraceOption)
-			{
-			case ResourceLoadingTraceOption::ShowLoadTime:
-			case ResourceLoadingTraceOption::WindowsAPILogWait:
-				InstallSC4AppSetupResourcesHook(gameVersion);
-				break;
-			}
+			InstallSC4AppSetupResourcesHook(gameVersion);
 		}
 		else
 		{
@@ -540,6 +547,34 @@ namespace
 		DetourUpdateThread(GetCurrentThread());
 		DetourDetach(&(PVOID&)RealDoesDirectoryExist, HookedDoesDiectoryExist);
 		DetourTransactionCommit();
+	}
+
+	void TimeUserPluginsSearch(cIGZCOM* pCOM)
+	{
+		cIGZFrameWork* const pFramework = pCOM->FrameWork();
+		cIGZApp* const pApp = pFramework->Application();
+
+		cRZAutoRefCount<cISC4App> pSC4App;
+
+		if (pApp->QueryInterface(GZIID_cISC4App, pSC4App.AsPPVoid()))
+		{
+			cRZBaseString userPlugins;
+
+			pSC4App->GetUserPluginDirectory(userPlugins);
+
+			Stopwatch sw;
+			sw.Start();
+
+			SC4DirectoryEnumerator enumerator(userPlugins);
+
+			sw.Stop();
+
+			PrintLineToDebugOutputFormatted(
+				"Read %u DAT files and %u SC4 files in %lld ms",
+				enumerator.DatFiles().size(),
+				enumerator.Sc4Files().size(),
+				sw.ElapsedMilliseconds());
+		}
 	}
 
 	cRZBaseString GetSC4InstallFolderFilePath(cIGZFrameWork* const pFramework, const char* const fileName)
@@ -660,6 +695,7 @@ private:
 
 		InstallMemoryPatches();
 
+		//TimeUserPluginsSearch(pCOM);
 		//Trace_GZDBSegmentPackedFile_GetResourceKeys(pCOM);
 
 		if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ListLoadedFiles)
@@ -710,6 +746,12 @@ private:
 
 						if (segment->QueryInterface(GZIID_cIGZPersistDBSegmentMultiPackedFiles, multiPackedFile.AsPPVoid()))
 						{
+#ifdef _DEBUG
+							cRZBaseString path;
+							segment->GetPath(path);
+#endif // _DEBUG
+
+
 							// Multi-packed files are used as a container for the DAT files that are loaded from a
 							// directory and its sub-directories.
 							//
@@ -749,7 +791,7 @@ private:
 			}
 		}
 
-#if 0
+#if 1
 		cIGZFrameWork* const pFramework = RZGetFramework();
 
 		cIGZApp* const pApp = pFramework->Application();

@@ -24,3 +24,15 @@ bool StringViewUtil::StartsWithIgnoreCase(const std::string_view& lhs, const std
 	return lhs.length() >  rhs.length()
 		&& boost::istarts_with(lhs, rhs);
 }
+
+bool StringViewUtil::EqualsIgnoreCase(const std::wstring_view& lhs, const std::wstring_view& rhs)
+{
+	return lhs.length() == rhs.length()
+		&& boost::iequals(lhs, rhs);
+}
+
+bool StringViewUtil::StartsWithIgnoreCase(const std::wstring_view& lhs, const std::wstring_view& rhs)
+{
+	return lhs.length() > rhs.length()
+		&& boost::istarts_with(lhs, rhs);
+}
