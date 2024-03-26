@@ -15,8 +15,8 @@ public:
 
 	virtual void SetPathFilter(cIGZString const&) = 0;
 
-	virtual uint32_t ConsolidateDatabaseRecords(cIGZPersistDBSegment*, cIGZPersistResourceKeyFilter*) = 0;
-	virtual uint32_t ConsolidateDatabaseRecords(cIGZString const&, cIGZPersistResourceKeyFilter*) = 0;
+	virtual int32_t ConsolidateDatabaseRecords(cIGZPersistDBSegment*, cIGZPersistResourceKeyFilter*) = 0;
+	virtual int32_t ConsolidateDatabaseRecords(cIGZString const&, cIGZPersistResourceKeyFilter*) = 0;
 
 	virtual bool FindDBSegment(cGZPersistResourceKey const&, cIGZPersistDBSegment**) = 0;
 	virtual uint32_t GetSegmentCount() = 0;
