@@ -1,4 +1,5 @@
 #include "cRZFileHooks.h"
+#include "cIGZString.h"
 #include "Logger.h"
 #include "Patcher.h"
 #include <stdexcept>
@@ -98,12 +99,18 @@ namespace
 		}
 	}
 
+	class cRZString
+	{
+		void* vtable;
+		intptr_t stdStringFields[3];
+		uint32_t refCount;
+	};
+
 	class cRZFileProxy
 	{
 	public:
 		void* vtable;
-		void* baseVTable;
-		intptr_t unknown1[4];
+		cRZString nameRZStr;
 		int isOpen;
 		HANDLE fileHandle;
 		intptr_t unknown2[4];
@@ -138,7 +145,13 @@ namespace
 	static bool __fastcall HookedReadWithCount(cRZFileProxy* pThis, void* edxUnused, void* outBuffer, uint32_t& byteCount)
 	{
 		bool result = false;
-		//PrintLineToDebugOutputFormatted("HookedReadWithCount: %u bytes requested", byteCount);
+#if 0
+		PrintLineToDebugOutputFormatted(
+			"HookedReadWithCount: %u bytes requested, position: %u, name: %s",
+			byteCount,
+			pThis->currentFilePosition + (pThis->currentFilePosition - pThis->readBufferOffset),
+			reinterpret_cast<cIGZString*>(&pThis->nameRZStr)->ToChar());
+#endif
 
 		if (pThis->isOpen)
 		{
