@@ -597,7 +597,7 @@ private:
 
 		InstallMemoryPatches();
 
-		Trace_GZDBSegmentPackedFile_GetResourceKeys(pCOM);
+		//Trace_GZDBSegmentPackedFile_GetResourceKeys(pCOM);
 
 		if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ListLoadedFiles)
 		{
