@@ -158,14 +158,13 @@ namespace
 			// If the requested number of bytes is larger than the games buffer size, we will attempt
 			// to fill the buffer with as much data as the OS can provide per call.
 			// This can significantly reduce the required number of system calls for large reads when
-			// when compared to the game's standard behavior of copying from a fixed-size buffer
-			// in a loop.
+			// compared to the game's standard behavior of copying from a fixed-size buffer in a loop.
 			//
 			// To minimize complexity and potential compatibility issues, our code only runs when the
 			// following conditions are true:
 			//
 			// 1. The game's read buffer size is greater than 0 and less than the requested read size.
-			// 2. The file is at the correct positions to start reading.
+			// 2. The file is at the correct position to start reading.
 			// 3. The game's existing read buffer is empty.
 			//
 			// If any of these conditions are not met, the call will be forwarded to the game's
