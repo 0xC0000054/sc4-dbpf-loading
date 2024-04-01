@@ -42,7 +42,7 @@ void Patcher::InstallHook(uintptr_t targetAddress, void (*pfnFunc)())
 		&oldProtect));
 
 	// Patch the memory at the specified address.
-	*((uint8_t*)targetAddress) = 0xE8;
+	*((uint8_t*)targetAddress) = 0xE9;
 	*((uintptr_t*)(targetAddress + 1)) = reinterpret_cast<uintptr_t>(pfnFunc) - targetAddress - 5;
 }
 
