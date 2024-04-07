@@ -12,6 +12,8 @@
 
 #include "version.h"
 #include "Logger.h"
+#include "MultiPackedFile.h"
+#include "MultiPackedFileManager.h"
 #include "SC4VersionDetection.h"
 #include "Stopwatch.h"
 #include "StringViewUtil.h"
@@ -609,12 +611,21 @@ namespace
 #endif // _DEBUG
 }
 
+static MultiPackedFileManager* spMultiPackedFileManager;
+
+static cIGZUnknown* CreateMultiPackedFile()
+{
+	return spMultiPackedFileManager->CreateMultiPackedFile();
+}
+
 class DBPFLoadingDllDirector : public cRZCOMDllDirector
 {
 public:
 
 	DBPFLoadingDllDirector()
 	{
+		AddCls(GZCLSID_cGZPersistDBSegmentMultiPackedFiles, CreateMultiPackedFile);
+		spMultiPackedFileManager = &multiPackedFileManager;
 		std::filesystem::path dllFolderPath = GetDllFolderPath();
 
 		std::filesystem::path logFilePath = dllFolderPath;
@@ -630,6 +641,22 @@ private:
 	uint32_t GetDirectorID() const
 	{
 		return kDBPFLoadingDirectorID;
+	}
+
+	void EnumClassObjects(ClassObjectEnumerationCallback pCallback, void* pContext)
+	{
+		// The classes you want to add must be initialized in the DLL constructor because
+		// the framework calls this method before OnStart or any of the hook callbacks.
+		// This method is called once when initializing a director, the list of class IDs
+		// it returns is cached by the framework.
+		//
+		// The second parameter of the ClassObjectEnumerationCallback is a class version number.
+		// If the ID matches a class that has already been registered, the framework will replace
+		// the existing class if the new class has a higher version number.
+		//
+		// SC4's built-in cGZPersistDBSegmentMultiPackedFiles class is registered with a version
+		// of 0, so using 1 will allow us to replace SC4's built-in version.
+		pCallback(GZCLSID_cGZPersistDBSegmentMultiPackedFiles, 1, pContext);
 	}
 
 	bool OnStart(cIGZCOM* pCOM)
@@ -782,6 +809,7 @@ private:
 		return true;
 	}
 
+	MultiPackedFileManager multiPackedFileManager;
 };
 
 cRZCOMDllDirector* RZGetCOMDllDirector() {
