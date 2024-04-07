@@ -339,6 +339,7 @@ namespace
 
 			try
 			{
+				RealRZStringSprintf = reinterpret_cast<RZString_Sprintf>(0x90F574);
 				InstallCallHook(0x48C603, &Hooked_MissingPluginPackSprintf);
 				logger.WriteLine(LogLevel::Info, "Changed the missing plugin error message to use hexadecimal.");
 			}
