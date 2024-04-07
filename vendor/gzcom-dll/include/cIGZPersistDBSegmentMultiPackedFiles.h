@@ -6,7 +6,7 @@ class cIGZPersistDBSegment;
 class cIGZPersistResourceKeyFilter;
 class cIGZString;
 
-static const uint32_t GZCLSID_cIGZPersistDBSegmentMultiPackedFiles = 0x90F8619;
+static const uint32_t GZCLSID_cGZPersistDBSegmentMultiPackedFiles = 0x90F8619;
 static const uint32_t GZIID_cIGZPersistDBSegmentMultiPackedFiles = 0xE90F85F3;
 
 class cIGZPersistDBSegmentMultiPackedFiles : public cIGZUnknown
