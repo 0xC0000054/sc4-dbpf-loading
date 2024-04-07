@@ -195,27 +195,6 @@ namespace
 		return result;
 	}
 
-	void IncreaseRZFileDefaultBufferSize()
-	{
-		// The RZFile constructor sets its default read and write buffer sizes to 512 bytes.
-		// As this is very small, we change it to 4096 bytes.
-		// This will significantly reduce the number of system calls that SC4 has to make
-		// when reading a file.
-		// This change is applied to 3 different cRZFile constructor overloads.
-		//
-		// Original instruction: e8 0x200  (MOV EAX,0x200)
-		// New instruction:      e8 0x1000 (MOV EAX,0x1000)
-
-		constexpr uint32_t kNewBufferSize = 0x1000;
-
-		// cRZFile()
-		Patcher::OverwriteMemory(0x918BD3, kNewBufferSize);
-		// cRZFile(char*)
-		Patcher::OverwriteMemory(0x919AA9, kNewBufferSize);
-		// cRZFile(cIGZString const&)
-		Patcher::OverwriteMemory(0x918C41, kNewBufferSize);
-	}
-
 	void InstallReadWithCountHook()
 	{
 		RealReadWithCount = reinterpret_cast<pfn_cRZFile_ReadWithCount>(0x9192A9);
@@ -238,7 +217,6 @@ void cRZFileHooks::Install(uint16_t gameVersion)
 
 		try
 		{
-			IncreaseRZFileDefaultBufferSize();
 			InstallReadWithCountHook();
 
 			logger.WriteLine(LogLevel::Info, "Installed the cRZFile hooks.");
