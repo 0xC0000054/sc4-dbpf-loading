@@ -47,8 +47,8 @@ public:
 	virtual uint32_t GetUsedGroupCount() = 0;
 	virtual void EnableUsedTypeAndGroupCounting(bool enabled) = 0;
 
-	virtual uint32_t CopyDatabaseRecords(cIGZPersistDBSegment* unknown1, cIGZPersistResourceKeyFilter* filter, bool unknown3, bool unknown4) = 0;
-	virtual uint32_t CopyDatabaseRecords(cIGZString const& unknown1, cIGZPersistResourceKeyFilter* filter, bool unknown3, bool unknown4) = 0;
+	virtual uint32_t CopyDatabaseRecords(cIGZPersistDBSegment* targetSegment, cIGZPersistResourceKeyFilter* filter, bool unknown3, bool keepOriginalRecords) = 0;
+	virtual uint32_t CopyDatabaseRecords(cIGZString const& targetPath, cIGZPersistResourceKeyFilter* filter, bool unknown3, bool keepOriginalRecords) = 0;
 
 	virtual bool CompactDatabase() = 0;
 	virtual bool VerifyDatabase() = 0;

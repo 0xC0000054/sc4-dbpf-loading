@@ -7,6 +7,8 @@ class cIGZPersistResourceKeyFilter;
 class cIGZPersistResourceKeyList;
 class cIGZString;
 
+static const uint32_t GZIID_cIGZPersistDBSegment = 0x656B8F0C;
+
 class cIGZPersistDBSegment : public cIGZUnknown
 {
 public:
@@ -48,5 +50,5 @@ public:
 	virtual bool ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize) = 0;
 	virtual bool WriteRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t recordSize) = 0;
 
-	virtual bool Init(uint32_t segmentID, cIGZString const* unknown1, bool unknown2) = 0;
+	virtual bool Init(uint32_t segmentID, cIGZString const& path, bool unknown2) = 0;
 };

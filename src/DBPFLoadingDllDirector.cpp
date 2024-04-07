@@ -278,7 +278,7 @@ namespace
 
 		int32_t result = RealRZStringSprintf(
 			rzStringThisPtr,
-			"%s %d (0x%08x)",
+			"%s 0x%08x",
 			pluginPackStr,
 			pluginPackID,
 			pluginPackID);
@@ -297,7 +297,8 @@ namespace
 
 			try
 			{
-				Patcher::InstallCallHook(0x48C603, &Hooked_MissingPluginPackSprintf);
+				RealRZStringSprintf = reinterpret_cast<RZString_Sprintf>(0x90F574);
+				InstallCallHook(0x48C603, &Hooked_MissingPluginPackSprintf);
 				logger.WriteLine(LogLevel::Info, "Changed the missing plugin error message to use hexadecimal.");
 			}
 			catch (const std::exception& e)

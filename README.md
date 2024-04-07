@@ -13,7 +13,8 @@ signature when it loads the plugin file.
 * Adds a `-StartupDBPFLoadTrace:` command line argument with the following options:
     * `ShowLoadTime` - shows a message box with the resource loading time in milliseconds.
     * `WinAPI` - shows message boxes before and after the resource loading code runs, this allows the user to start and stop a Process Monitor trace when the message box is shown.
-
+    * `ListLoadedFiles` - writes the loaded DBPF files to the plugin's log file in the order SC4 reads them.
+    
 The plugin can be downloaded from the Releases tab: https://github.com/0xC0000054/sc4-dbpf-loading/releases
 
 ## System Requirements
