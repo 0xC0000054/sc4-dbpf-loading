@@ -1,5 +1,6 @@
 #include "cRZFileHooks.h"
 #include "cIGZString.h"
+#include "DebugUtil.h"
 #include "Logger.h"
 #include "Patcher.h"
 #include <stdexcept>
@@ -11,51 +12,6 @@
 
 namespace
 {
-	void PrintLineToDebugOutput(const char* const line)
-	{
-		OutputDebugStringA(line);
-		OutputDebugStringA("\n");
-	}
-
-	void PrintLineToDebugOutputFormatted(const char* const format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-
-		va_list argsCopy;
-		va_copy(argsCopy, args);
-
-		int formattedStringLength = std::vsnprintf(nullptr, 0, format, argsCopy);
-
-		va_end(argsCopy);
-
-		if (formattedStringLength > 0)
-		{
-			size_t formattedStringLengthWithNull = static_cast<size_t>(formattedStringLength) + 1;
-
-			constexpr size_t stackBufferSize = 1024;
-
-			if (formattedStringLengthWithNull >= stackBufferSize)
-			{
-				std::unique_ptr<char[]> buffer = std::make_unique_for_overwrite<char[]>(formattedStringLengthWithNull);
-
-				std::vsnprintf(buffer.get(), formattedStringLengthWithNull, format, args);
-
-				PrintLineToDebugOutput(buffer.get());
-			}
-			else
-			{
-				char buffer[stackBufferSize]{};
-
-				std::vsnprintf(buffer, stackBufferSize, format, args);
-
-				PrintLineToDebugOutput(buffer);
-			}
-		}
-
-		va_end(args);
-	}
-
 	bool ReadFileBlocking(HANDLE hFile, BYTE* buffer, size_t count)
 	{
 		size_t offset = 0;
@@ -146,7 +102,7 @@ namespace
 	{
 		bool result = false;
 #if 0
-		PrintLineToDebugOutputFormatted(
+		DebugUtil::PrintLineToDebugOutputFormatted(
 			"HookedReadWithCount: %u bytes requested, position: %u, name: %s",
 			byteCount,
 			pThis->currentFilePosition + (pThis->currentFilePosition - pThis->readBufferOffset),

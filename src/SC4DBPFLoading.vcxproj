@@ -32,6 +32,7 @@
     <ClCompile Include="..\vendor\gzcom-dll\src\StringResourceManager.cpp" />
     <ClCompile Include="cRZFileHooks.cpp" />
     <ClCompile Include="DBPFLoadingDllDirector.cpp" />
+    <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Patcher.cpp" />
     <ClCompile Include="SC4VersionDetection.cpp" />
@@ -50,6 +51,7 @@
     <ClInclude Include="..\vendor\gzcom-dll\include\StringResourceKey.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\StringResourceManager.h" />
     <ClInclude Include="cRZFileHooks.h" />
+    <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Patcher.h" />
     <ClInclude Include="SC4VersionDetection.h" />

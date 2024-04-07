@@ -12,6 +12,7 @@
 
 #include "version.h"
 #include "cRZFileHooks.h"
+#include "DebugUtil.h"
 #include "Logger.h"
 #include "Patcher.h"
 #include "SC4VersionDetection.h"
@@ -60,51 +61,6 @@ namespace
 		std::filesystem::path temp(modulePath.get());
 
 		return temp.parent_path();
-	}
-
-	void PrintLineToDebugOutput(const char* const line)
-	{
-		OutputDebugStringA(line);
-		OutputDebugStringA("\n");
-	}
-
-	void PrintLineToDebugOutputFormatted(const char* const format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-
-		va_list argsCopy;
-		va_copy(argsCopy, args);
-
-		int formattedStringLength = std::vsnprintf(nullptr, 0, format, argsCopy);
-
-		va_end(argsCopy);
-
-		if (formattedStringLength > 0)
-		{
-			size_t formattedStringLengthWithNull = static_cast<size_t>(formattedStringLength) + 1;
-
-			constexpr size_t stackBufferSize = 1024;
-
-			if (formattedStringLengthWithNull >= stackBufferSize)
-			{
-				std::unique_ptr<char[]> buffer = std::make_unique_for_overwrite<char[]>(formattedStringLengthWithNull);
-
-				std::vsnprintf(buffer.get(), formattedStringLengthWithNull, format, args);
-
-				PrintLineToDebugOutput(buffer.get());
-			}
-			else
-			{
-				char buffer[stackBufferSize]{};
-
-				std::vsnprintf(buffer, stackBufferSize, format, args);
-
-				PrintLineToDebugOutput(buffer);
-			}
-		}
-
-		va_end(args);
 	}
 
 	void DisableResourceLoadDebuggingCode(uint16_t gameVersion)
@@ -298,7 +254,7 @@ namespace
 			try
 			{
 				RealRZStringSprintf = reinterpret_cast<RZString_Sprintf>(0x90F574);
-				InstallCallHook(0x48C603, &Hooked_MissingPluginPackSprintf);
+				Patcher::InstallCallHook(0x48C603, &Hooked_MissingPluginPackSprintf);
 				logger.WriteLine(LogLevel::Info, "Changed the missing plugin error message to use hexadecimal.");
 			}
 			catch (const std::exception& e)
@@ -442,7 +398,7 @@ namespace
 
 	static bool __cdecl HookedDoesDiectoryExist(cIGZString const& path)
 	{
-		PrintLineToDebugOutput(path.ToChar());
+		DebugUtil::PrintLineToDebugOutput(path.ToChar());
 
 		bool result = RealDoesDirectoryExist(path);
 
@@ -523,7 +479,7 @@ namespace
 
 						sw.Stop();
 
-						PrintLineToDebugOutputFormatted("%s opened in %lld ms", fileName, sw.ElapsedMilliseconds());
+						DebugUtil::PrintLineToDebugOutputFormatted("%s opened in %lld ms", fileName, sw.ElapsedMilliseconds());
 
 						if (result)
 						{
@@ -533,7 +489,7 @@ namespace
 							{
 								if (pSegment->GetResourceKeyList(pList, nullptr))
 								{
-									PrintLineToDebugOutputFormatted("%u resource keys", pList->Size());
+									DebugUtil::PrintLineToDebugOutputFormatted("%u resource keys", pList->Size());
 								}
 							}
 						}
