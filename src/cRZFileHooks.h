@@ -11,7 +11,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <cstdint>
 
-#define PLUGIN_VERSION_STR	    "0.0.4"
-#define RESOURCE_VERSION         0,0,4,0
-#define RESOURCE_VERSION_STR    "0.0.4.0"
+namespace cRZFileHooks
+{
+	void Install(uint16_t gameVersion);
+};

@@ -4,7 +4,6 @@ A DLL Plugin for SimCity 4 that optimizes the DBPF loading.
 
 This is an experimental plugin that provide the following features:
 
-* Increases the game's internal file buffer size from 512 bytes to 4096 bytes.
 * Disables the game code that searches the entire file if the DBPF signature was not found.
 * Replaces one DBPF signature check with a file extension check, the plugin tells the game that any file with a 
 .SC4 extension (.SC4, .SC4Lot, etc.) is DBPF. This removes one file open/read call, SC4 will still check the

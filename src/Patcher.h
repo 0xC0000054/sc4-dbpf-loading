@@ -11,7 +11,19 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <cstdint>
 
-#define PLUGIN_VERSION_STR	    "0.0.4"
-#define RESOURCE_VERSION         0,0,4,0
-#define RESOURCE_VERSION_STR    "0.0.4.0"
+#ifdef __clang__
+#define NAKED_FUN __attribute__((naked))
+#else
+#define NAKED_FUN __declspec(naked)
+#endif
+
+namespace Patcher
+{
+	void OverwriteMemory(uintptr_t address, uint8_t newValue);
+	void OverwriteMemory(uintptr_t address, uintptr_t newValue);
+
+	void InstallHook(uintptr_t targetAddress, void (*pfnFunc)());
+	void InstallCallHook(uintptr_t targetAddress, void* pfnFunc);
+}

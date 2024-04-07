@@ -12,6 +12,8 @@
 
 #pragma once
 
-#define PLUGIN_VERSION_STR	    "0.0.4"
-#define RESOURCE_VERSION         0,0,4,0
-#define RESOURCE_VERSION_STR    "0.0.4.0"
+namespace DebugUtil
+{
+	void PrintLineToDebugOutput(const char* const line);
+	void PrintLineToDebugOutputFormatted(const char* const format, ...);
+}

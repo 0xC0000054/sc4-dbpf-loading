@@ -11,9 +11,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "version.h"
+#include "cRZFileHooks.h"
+#include "DebugUtil.h"
 #include "Logger.h"
 #include "MultiPackedFile.h"
 #include "MultiPackedFileManager.h"
+#include "Patcher.h"
 #include "SC4VersionDetection.h"
 #include "Stopwatch.h"
 #include "StringViewUtil.h"
@@ -62,95 +65,6 @@ namespace
 		return temp.parent_path();
 	}
 
-	void PrintLineToDebugOutput(const char* const line)
-	{
-		OutputDebugStringA(line);
-		OutputDebugStringA("\n");
-	}
-
-	void PrintLineToDebugOutputFormatted(const char* const format, ...)
-	{
-		va_list args;
-		va_start(args, format);
-
-		va_list argsCopy;
-		va_copy(argsCopy, args);
-
-		int formattedStringLength = std::vsnprintf(nullptr, 0, format, argsCopy);
-
-		va_end(argsCopy);
-
-		if (formattedStringLength > 0)
-		{
-			size_t formattedStringLengthWithNull = static_cast<size_t>(formattedStringLength) + 1;
-
-			constexpr size_t stackBufferSize = 1024;
-
-			if (formattedStringLengthWithNull >= stackBufferSize)
-			{
-				std::unique_ptr<char[]> buffer = std::make_unique_for_overwrite<char[]>(formattedStringLengthWithNull);
-
-				std::vsnprintf(buffer.get(), formattedStringLengthWithNull, format, args);
-
-				PrintLineToDebugOutput(buffer.get());
-			}
-			else
-			{
-				char buffer[stackBufferSize]{};
-
-				std::vsnprintf(buffer, stackBufferSize, format, args);
-
-				PrintLineToDebugOutput(buffer);
-			}
-		}
-
-		va_end(args);
-	}
-
-	void OverwriteMemory(uintptr_t address, uint8_t newValue)
-	{
-		DWORD oldProtect;
-		// Allow the executable memory to be written to.
-		THROW_IF_WIN32_BOOL_FALSE(VirtualProtect(
-			reinterpret_cast<LPVOID>(address),
-			sizeof(newValue),
-			PAGE_EXECUTE_READWRITE,
-			&oldProtect));
-
-		// Patch the memory at the specified address.
-		*((uint8_t*)address) = newValue;
-	}
-
-	void OverwriteMemory(uintptr_t address, uintptr_t newValue)
-	{
-		DWORD oldProtect;
-		// Allow the executable memory to be written to.
-		THROW_IF_WIN32_BOOL_FALSE(VirtualProtect(
-			reinterpret_cast<LPVOID>(address),
-			sizeof(newValue),
-			PAGE_EXECUTE_READWRITE,
-			&oldProtect));
-
-		// Patch the memory at the specified address.
-		*((uintptr_t*)address) = newValue;
-	}
-
-
-	void InstallCallHook(uintptr_t targetAddress, void* pfnFunc)
-	{
-		// Allow the executable memory to be written to.
-		DWORD oldProtect = 0;
-		THROW_IF_WIN32_BOOL_FALSE(VirtualProtect(
-			reinterpret_cast<LPVOID>(targetAddress),
-			5,
-			PAGE_EXECUTE_READWRITE,
-			&oldProtect));
-
-		// Patch the memory at the specified address.
-		*((uint8_t*)targetAddress) = 0xE8;
-		*((uintptr_t*)(targetAddress + 1)) = ((uintptr_t)pfnFunc) - targetAddress - 5;
-	}
-
 	void DisableResourceLoadDebuggingCode(uint16_t gameVersion)
 	{
 		Logger& logger = Logger::GetInstance();
@@ -171,7 +85,7 @@ namespace
 				//
 				// Original instruction: 0x74 (JZ rel8).
 				// New instruction: 0xEB (JMP rel8).
-				OverwriteMemory(0x4572CE, static_cast<uint8_t>(0xEB));
+				Patcher::OverwriteMemory(0x4572CE, static_cast<uint8_t>(0xEB));
 				logger.WriteLine(LogLevel::Info, "Disabled the built-in DBPF loading debug code.");
 			}
 			catch (const std::exception& e)
@@ -290,7 +204,7 @@ namespace
 
 			try
 			{
-				InstallCallHook(0x9729e1, &HookedFindHeaderRecord);
+				Patcher::InstallCallHook(0x9729e1, &HookedFindHeaderRecord);
 				logger.WriteLine(LogLevel::Info, "Patched the DBPF Open header check.");
 			}
 			catch (const std::exception& e)
@@ -342,7 +256,7 @@ namespace
 			try
 			{
 				RealRZStringSprintf = reinterpret_cast<RZString_Sprintf>(0x90F574);
-				InstallCallHook(0x48C603, &Hooked_MissingPluginPackSprintf);
+				Patcher::InstallCallHook(0x48C603, &Hooked_MissingPluginPackSprintf);
 				logger.WriteLine(LogLevel::Info, "Changed the missing plugin error message to use hexadecimal.");
 			}
 			catch (const std::exception& e)
@@ -434,7 +348,7 @@ namespace
 
 			try
 			{
-				InstallCallHook(0x44C97E, &HookedSetupResources);
+				Patcher::InstallCallHook(0x44C97E, &HookedSetupResources);
 				logger.WriteLine(LogLevel::Info, "Installed the cSC4App::SetupResources hook.");
 			}
 			catch (const std::exception& e)
@@ -444,40 +358,6 @@ namespace
 					"Failed to install the cSC4App::SetupResources hook: %s",
 					e.what());
 			}
-		}
-	}
-
-	void IncreaseRZFileDefaultBufferSize(uint16_t gameVersion)
-	{
-		Logger& logger = Logger::GetInstance();
-
-		try
-		{
-			// The RZFile constructor sets its default read and write buffer sizes to 512 bytes.
-			// As this is very small, we change it to 4096 bytes.
-			// This will significantly reduce the number of system calls that SC4 has to make
-			// when reading a file.
-			// This change is applied to 3 different cRZFile constructor overloads.
-			//
-			// Original instruction: e8 0x200  (MOV EAX,0x200)
-			// New instruction:      e8 0x1000 (MOV EAX,0x1000)
-
-			constexpr uint32_t kNewBufferSize = 0x1000;
-
-			// cRZFile()
-			OverwriteMemory(0x918BD3, kNewBufferSize);
-			// cRZFile(char*)
-			OverwriteMemory(0x919AA9, kNewBufferSize);
-			// cRZFile(cIGZString const&)
-			OverwriteMemory(0x918C41, kNewBufferSize);
-			logger.WriteLine(LogLevel::Info, "Increased the cRZFile default buffer size to 4096 bytes.");
-		}
-		catch (const std::exception& e)
-		{
-			logger.WriteLineFormatted(
-				LogLevel::Error,
-				"Failed to increase the cRZFile default buffer size to 4096 bytes: %s",
-				e.what());
 		}
 	}
 
@@ -493,7 +373,7 @@ namespace
 			InstallIsDatabaseFileHook(gameVersion);
 			InstallDBPFOpenFindHeaderRecordHook(gameVersion);
 			InstallMissingPluginDialogHexPatch(gameVersion);
-			IncreaseRZFileDefaultBufferSize(gameVersion);
+			cRZFileHooks::Install(gameVersion);
 
 			switch (resourceLoadingTraceOption)
 			{
@@ -520,7 +400,7 @@ namespace
 
 	static bool __cdecl HookedDoesDiectoryExist(cIGZString const& path)
 	{
-		PrintLineToDebugOutput(path.ToChar());
+		DebugUtil::PrintLineToDebugOutput(path.ToChar());
 
 		bool result = RealDoesDirectoryExist(path);
 
