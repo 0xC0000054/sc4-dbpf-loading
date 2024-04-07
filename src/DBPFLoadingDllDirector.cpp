@@ -320,7 +320,7 @@ namespace
 
 		int32_t result = RealRZStringSprintf(
 			rzStringThisPtr,
-			"%s %d (0x%08x)",
+			"%s 0x%08x",
 			pluginPackStr,
 			pluginPackID,
 			pluginPackID);
