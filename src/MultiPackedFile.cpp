@@ -342,7 +342,8 @@ bool MultiPackedFile::CloseRecord(cIGZPersistDBRecord* record)
 
 	if (isOpen && record)
 	{
-		const cGZPersistResourceKey& key = record->GetKey();
+		cGZPersistResourceKey key;
+		record->GetKey(key);
 
 		auto item = tgiMap.find(key);
 
@@ -363,7 +364,8 @@ bool MultiPackedFile::CloseRecord(cIGZPersistDBRecord** record)
 
 	if (isOpen && record && *record)
 	{
-		const cGZPersistResourceKey& key = (*record)->GetKey();
+		cGZPersistResourceKey key;
+		(*record)->GetKey(key);
 
 		auto item = tgiMap.find(key);
 
@@ -384,7 +386,8 @@ bool MultiPackedFile::AbortRecord(cIGZPersistDBRecord* record)
 
 	if (isOpen && record)
 	{
-		const cGZPersistResourceKey& key = record->GetKey();
+		cGZPersistResourceKey key;
+		record->GetKey(key);
 
 		auto item = tgiMap.find(key);
 
@@ -405,7 +408,8 @@ bool MultiPackedFile::AbortRecord(cIGZPersistDBRecord** record)
 
 	if (isOpen && record && *record)
 	{
-		const cGZPersistResourceKey& key = (*record)->GetKey();
+		cGZPersistResourceKey key;
+		(*record)->GetKey(key);
 
 		auto item = tgiMap.find(key);
 

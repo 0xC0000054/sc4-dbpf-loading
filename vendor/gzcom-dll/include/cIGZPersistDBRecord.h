@@ -8,7 +8,7 @@ static const uint32_t GZIID_cIGZPersistDBRecord = 0xE56B8F03;
 class cIGZPersistDBRecord : public cIGZUnknown
 {
 public:
-	virtual const cGZPersistResourceKey& GetKey() const = 0;
+	virtual void GetKey(cGZPersistResourceKey& key) const = 0;
 
 	virtual uint16_t GetAccessFlags() const = 0;
 	virtual bool Close() = 0;
