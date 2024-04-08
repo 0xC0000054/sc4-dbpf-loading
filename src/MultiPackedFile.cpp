@@ -616,8 +616,6 @@ bool MultiPackedFile::SetupGZPersistDBSegment(
 					result = true;
 				}
 			}
-
-			pSegment->Shutdown();
 		}
 	}
 
