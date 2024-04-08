@@ -479,7 +479,7 @@ namespace
 						{
 							if (pSegment->GetResourceKeyList(pList, nullptr))
 							{
-								PrintLineToDebugOutputFormatted("%u resource keys", pList->Size());
+								DebugUtil::PrintLineToDebugOutputFormatted("%u resource keys", pList->Size());
 							}
 						}
 					}
