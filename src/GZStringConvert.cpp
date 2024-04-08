@@ -55,7 +55,7 @@ cRZBaseString GZStringConvert::FromUtf16(const std::wstring& str)
 			ThrowExceptionForWin32Error("WideCharToMultiByte", lastError);
 		}
 
-		result.Resize(static_cast<uint32_t>(utf16Length));
+		result.Resize(static_cast<uint32_t>(utf8Length));
 
 		const int convertResult = WideCharToMultiByte(
 			CP_UTF8,
