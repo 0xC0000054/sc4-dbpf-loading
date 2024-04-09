@@ -37,14 +37,14 @@ public:
 
 	virtual bool TestForRecord(cGZPersistResourceKey const& key) = 0;
 	virtual uint32_t GetRecordSize(cGZPersistResourceKey const& key) = 0;
-	virtual bool OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** unknown2, uint32_t unknown3) = 0;
-	virtual bool CreateNewRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** unknown2) = 0;
+	virtual bool OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record, uint32_t accessMode) = 0;
+	virtual bool CreateNewRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record) = 0;
 
-	virtual bool CloseRecord(cIGZPersistDBRecord* unknown1) = 0;
-	virtual bool CloseRecord(cIGZPersistDBRecord** unknown1) = 0;
+	virtual bool CloseRecord(cIGZPersistDBRecord* record) = 0;
+	virtual bool CloseRecord(cIGZPersistDBRecord** record) = 0;
 
-	virtual bool AbortRecord(cIGZPersistDBRecord* unknown1) = 0;
-	virtual bool AbortRecord(cIGZPersistDBRecord** unknown1) = 0;
+	virtual bool AbortRecord(cIGZPersistDBRecord* record) = 0;
+	virtual bool AbortRecord(cIGZPersistDBRecord** record) = 0;
 
 	virtual bool DeleteRecord(cGZPersistResourceKey const& key) = 0;
 	virtual bool ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize) = 0;

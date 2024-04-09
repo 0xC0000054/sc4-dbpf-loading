@@ -310,7 +310,7 @@ uint32_t MultiPackedFile::GetRecordSize(cGZPersistResourceKey const& key)
 	return result;
 }
 
-bool MultiPackedFile::OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** unknown2, uint32_t unknown3)
+bool MultiPackedFile::OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record, uint32_t fileAccessMode)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -322,7 +322,7 @@ bool MultiPackedFile::OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDB
 
 		if (item != tgiMap.end())
 		{
-			result = item->second->OpenRecord(key, unknown2, unknown3);
+			result = item->second->OpenRecord(key, record, fileAccessMode);
 		}
 	}
 

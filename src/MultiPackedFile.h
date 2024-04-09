@@ -62,14 +62,14 @@ public:
 
 	bool TestForRecord(cGZPersistResourceKey const& key) override;
 	uint32_t GetRecordSize(cGZPersistResourceKey const& key) override;
-	bool OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** unknown2, uint32_t unknown3) override;
-	bool CreateNewRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** unknown2) override;
+	bool OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record, uint32_t fileAccessMode) override;
+	bool CreateNewRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record) override;
 
-	bool CloseRecord(cIGZPersistDBRecord* unknown1) override;
-	bool CloseRecord(cIGZPersistDBRecord** unknown1) override;
+	bool CloseRecord(cIGZPersistDBRecord* record) override;
+	bool CloseRecord(cIGZPersistDBRecord** record) override;
 
-	bool AbortRecord(cIGZPersistDBRecord* unknown1) override;
-	bool AbortRecord(cIGZPersistDBRecord** unknown1) override;
+	bool AbortRecord(cIGZPersistDBRecord* record) override;
+	bool AbortRecord(cIGZPersistDBRecord** record) override;
 
 	bool DeleteRecord(cGZPersistResourceKey const& key) override;
 	bool ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize) override;
