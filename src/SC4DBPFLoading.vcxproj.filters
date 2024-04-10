@@ -108,7 +108,13 @@
     <ClCompile Include="SC4DirectoryEnumerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MultiPackedFileManager.cpp">
+    <ClCompile Include="cRZFileHooks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Patcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -176,7 +182,13 @@
     <ClInclude Include="SC4DirectoryEnumerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MultiPackedFileManager.h">
+    <ClInclude Include="cRZFileHooks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Patcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

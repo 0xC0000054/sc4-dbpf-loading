@@ -15,7 +15,6 @@
 #include "DebugUtil.h"
 #include "Logger.h"
 #include "MultiPackedFile.h"
-#include "MultiPackedFileManager.h"
 #include "Patcher.h"
 #include "SC4VersionDetection.h"
 #include "Stopwatch.h"
@@ -491,11 +490,9 @@ namespace
 #endif // _DEBUG
 }
 
-static MultiPackedFileManager* spMultiPackedFileManager;
-
 static cIGZUnknown* CreateMultiPackedFile()
 {
-	return spMultiPackedFileManager->CreateMultiPackedFile();
+	return static_cast<cIGZPersistDBSegment*>(new MultiPackedFile());
 }
 
 class DBPFLoadingDllDirector : public cRZCOMDllDirector
@@ -505,7 +502,6 @@ public:
 	DBPFLoadingDllDirector()
 	{
 		AddCls(GZCLSID_cGZPersistDBSegmentMultiPackedFiles, CreateMultiPackedFile);
-		spMultiPackedFileManager = &multiPackedFileManager;
 		std::filesystem::path dllFolderPath = GetDllFolderPath();
 
 		std::filesystem::path logFilePath = dllFolderPath;
@@ -688,8 +684,6 @@ private:
 #endif
 		return true;
 	}
-
-	MultiPackedFileManager multiPackedFileManager;
 };
 
 cRZCOMDllDirector* RZGetCOMDllDirector() {

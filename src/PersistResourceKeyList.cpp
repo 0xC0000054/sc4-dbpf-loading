@@ -44,20 +44,28 @@ bool PersistResourceKeyList::QueryInterface(uint32_t riid, void** ppvObj)
 
 uint32_t PersistResourceKeyList::AddRef()
 {
-	return ++refCount;
+	uint32_t localRefCount = refCount + 1;
+	refCount = localRefCount;
+
+	return localRefCount;
 }
 
 uint32_t PersistResourceKeyList::Release()
 {
-	if (refCount == 1)
+	uint32_t localRefCount = 0;
+
+	if (refCount > 0)
 	{
-		delete this;
-		return 0;
+		localRefCount = refCount - 1;
+		refCount = localRefCount;
+
+		if (localRefCount == 0)
+		{
+			delete this;
+		}
 	}
-	else
-	{
-		return --refCount;
-	}
+
+	return localRefCount;
 }
 
 bool PersistResourceKeyList::Insert(cGZPersistResourceKey const& key)

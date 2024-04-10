@@ -82,10 +82,15 @@ uint32_t MultiPackedFile::Release()
 {
 	uint32_t localRefCount = 0;
 
-	if (refCount >  0)
+	if (refCount > 0)
 	{
 		localRefCount = refCount - 1;
 		refCount = localRefCount;
+
+		if (localRefCount == 0)
+		{
+			delete this;
+		}
 	}
 
 	return localRefCount;

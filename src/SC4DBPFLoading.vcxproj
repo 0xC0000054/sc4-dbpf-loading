@@ -36,7 +36,6 @@
     <ClCompile Include="GZStringConvert.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="MultiPackedFile.cpp" />
-    <ClCompile Include="MultiPackedFileManager.cpp" />
     <ClCompile Include="Patcher.cpp" />
     <ClCompile Include="PersistResourceKeyList.cpp" />
     <ClCompile Include="SC4DirectoryEnumerator.cpp" />
@@ -61,7 +60,6 @@
     <ClInclude Include="GZStringConvert.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="MultiPackedFile.h" />
-    <ClInclude Include="MultiPackedFileManager.h" />
     <ClInclude Include="Patcher.h" />
     <ClInclude Include="PersistResourceKeyHash.h" />
     <ClInclude Include="PersistResourceKeyList.h" />
