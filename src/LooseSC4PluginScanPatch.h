@@ -11,16 +11,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "cRZBaseString.h"
-#include <vector>
 
-namespace SC4DirectoryEnumerator
+namespace LooseSC4PluginScanPatch
 {
-	void ScanDirectoryForDatFilesRecursive(
-		const cIGZString& root,
-		std::vector<cRZBaseString>& output);
-
-	void ScanDirectoryForLooseSC4FilesRecursive(
-		const cIGZString& root,
-		std::vector<cRZBaseString>& output);
-};
+	void Install();
+}

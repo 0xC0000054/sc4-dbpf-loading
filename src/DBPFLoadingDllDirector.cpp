@@ -14,6 +14,7 @@
 #include "cRZFileHooks.h"
 #include "DebugUtil.h"
 #include "Logger.h"
+#include "LooseSC4PluginScanPatch.h"
 #include "MultiPackedFile.h"
 #include "Patcher.h"
 #include "SC4VersionDetection.h"
@@ -373,6 +374,7 @@ namespace
 			InstallDBPFOpenFindHeaderRecordHook(gameVersion);
 			InstallMissingPluginDialogHexPatch(gameVersion);
 			cRZFileHooks::Install(gameVersion);
+			LooseSC4PluginScanPatch::Install();
 
 			switch (resourceLoadingTraceOption)
 			{
