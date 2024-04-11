@@ -582,14 +582,13 @@ bool MultiPackedFile::Open(const std::vector<cRZBaseString>& datFiles)
 		{
 			Logger::GetInstance().WriteLineFormatted(
 				LogLevel::Error,
-				"Failed to open file: %s",
+				"Failed to load: %s",
 				path.ToChar());
-			return false;
 		}
 	}
 
-	isOpen = true;
-	return true;
+	isOpen = segments.size() > 0;
+	return isOpen;
 }
 
 bool MultiPackedFile::SetupGZPersistDBSegment(
