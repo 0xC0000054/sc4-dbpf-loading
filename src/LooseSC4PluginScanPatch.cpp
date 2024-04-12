@@ -110,9 +110,26 @@ namespace
 		return result;
 	}
 
+	static int32_t __cdecl HookedIsDatabaseFile(cIGZString const& path, bool scanEntireFile)
+	{
+#ifdef _DEBUG
+		//PrintLineToDebugOutput(path.ToChar());
+#endif // _DEBUG
+
+		// SC4 checks every file in its plugins folders that does not have a .dat file extension to
+		// see if it is a DBPF file.
+		// Because our replacement directory scanning code already filters out any files that
+		// don't have a .SC4* file extension, we just return true.
+		//
+		// The method treats -1 as false, and any other value as true.
+
+		return 1;
+	}
+
 	static constexpr uintptr_t SC4InstallationPluginDirectoryScan_Inject = 0x457A2F;
 	static constexpr uintptr_t SC4InstallationPluginSkipFileExtensionCheck_Inject = 0x457A4B;
 	static constexpr uintptr_t SC4InstallationPluginSkipFileExtensionCheck_Continue = 0x457A6A;
+	static constexpr uintptr_t SC4InstallationPluginIsDatabaseFile_Inject = 0x457A9F;
 
 	static void NAKED_FUN SC4InstallationPluginSkipFileExtensionCheck()
 	{
@@ -129,6 +146,7 @@ namespace
 	static constexpr uintptr_t UserPluginDirectoryScan_Inject = 0x457CAE;
 	static constexpr uintptr_t UserPluginSkipFileExtensionCheck_Inject = 0x457CCA;
 	static constexpr uintptr_t UserPluginSkipFileExtensionCheck_Continue = 0x457CE9;
+	static constexpr uintptr_t UserPluginIsDatabaseFile_Inject = 0x457D1E;
 
 	static void NAKED_FUN UserPluginSkipFileExtensionCheck()
 	{
@@ -146,12 +164,14 @@ namespace
 	{
 		Patcher::InstallCallHook(SC4InstallationPluginDirectoryScan_Inject, &ScanDirectoryForLooseSC4Plugins);
 		Patcher::InstallHook(SC4InstallationPluginSkipFileExtensionCheck_Inject, &SC4InstallationPluginSkipFileExtensionCheck);
+		Patcher::InstallCallHook(SC4InstallationPluginIsDatabaseFile_Inject, &HookedIsDatabaseFile);
 	}
 
 	void InstallUserDirScanPatch()
 	{
 		Patcher::InstallCallHook(UserPluginDirectoryScan_Inject, &ScanDirectoryForLooseSC4Plugins);
 		Patcher::InstallHook(UserPluginSkipFileExtensionCheck_Inject, &UserPluginSkipFileExtensionCheck);
+		Patcher::InstallCallHook(UserPluginIsDatabaseFile_Inject, &HookedIsDatabaseFile);
 	}
 }
 

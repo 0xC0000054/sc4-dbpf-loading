@@ -98,84 +98,6 @@ namespace
 		}
 	}
 
-	bool HasDBPFFileExtension(const std::string_view& file)
-	{
-		// Assume that the file has a DBPF extension.
-
-		bool result = true;
-
-		const size_t periodOffset = file.find_last_of('.');
-
-		if (periodOffset != std::string_view::npos && periodOffset != (file.length() - 1))
-		{
-			std::string_view ext = file.substr(periodOffset);
-
-			// The non-DAT DBPF plugins all use a file extension starting with .SC4, these files
-			// should use one of the following extensions: .SC4, .SC4Desc, .SC4Lot or .SC4Model.
-			result = boost::istarts_with(ext, ".SC4"sv);
-		}
-
-		return result;
-	}
-
-	typedef int32_t(__cdecl *pfn_cGZDBSegmentPackedFile_IsDatabaseFile)(cIGZString const& path, bool scanEntireFile);
-
-	static pfn_cGZDBSegmentPackedFile_IsDatabaseFile RealIsDatabaseFile = nullptr;
-
-	static int32_t __cdecl HookedIsDatabaseFile(cIGZString const& path, bool scanEntireFile)
-	{
-#ifdef _DEBUG
-		//PrintLineToDebugOutput(path.ToChar());
-#endif // _DEBUG
-
-		// SC4 checks every file in its plugins folders that does not have a .dat file extension to
-		// see if it is a DBPF file, this can include file extensions such as .dll, .zip, etc.
-		//
-		// As a performance optimization, we check that the file extension starts .SC4, this will
-		// restrict the DBPF header check to .SC4, .SC4Desc, .SC4Lot or .SC4Model.
-		// SC4 will check the file signature when it opens the file and validates the header.
-		//
-		// The method treats -1 as false, and any other value as true.
-
-		return HasDBPFFileExtension(path.ToChar()) ? 1 : -1;
-	}
-
-	void InstallIsDatabaseFileHook(uint16_t gameVersion)
-	{
-		if (gameVersion == 641)
-		{
-			Logger& logger = Logger::GetInstance();
-
-			// The cGZDBSegmentPackedFile::IsDatabaseFile method is only called by the method that scans
-			// for plugins on startup (cSC4App::UpdateResources), so we don't need to unhook it after
-			// that code runs.
-			//
-			// Using Detours to hook the original method was simpler than trying to patch the 3
-			// locations in cSC4App::UpdateResources where it is called.
-
-			try
-			{
-				RealIsDatabaseFile = reinterpret_cast<pfn_cGZDBSegmentPackedFile_IsDatabaseFile>(0x9728D5);
-
-				DetourRestoreAfterWith();
-
-				DetourTransactionBegin();
-				DetourUpdateThread(GetCurrentThread());
-				DetourAttach(&(PVOID&)RealIsDatabaseFile, HookedIsDatabaseFile);
-				DetourTransactionCommit();
-
-				logger.WriteLine(LogLevel::Info, "Patched cGZDBSegmentPackedFile::IsDatabaseFile.");
-			}
-			catch (const std::exception& e)
-			{
-				logger.WriteLineFormatted(
-					LogLevel::Error,
-					"Failed to patch cGZDBSegmentPackedFile::IsDatabaseFile: %s",
-					e.what());
-			}
-		}
-	}
-
 	static int32_t __fastcall HookedFindHeaderRecord(void* thisPtr, void* edxUnused)
 	{
 		// When SC4 reads a DBPF file and does not find a valid header, it will
@@ -370,7 +292,6 @@ namespace
 		if (gameVersion == 641)
 		{
 			DisableResourceLoadDebuggingCode(gameVersion);
-			InstallIsDatabaseFileHook(gameVersion);
 			InstallDBPFOpenFindHeaderRecordHook(gameVersion);
 			InstallMissingPluginDialogHexPatch(gameVersion);
 			cRZFileHooks::Install(gameVersion);
