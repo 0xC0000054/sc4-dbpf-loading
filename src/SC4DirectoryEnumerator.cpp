@@ -154,7 +154,7 @@ namespace
 				{
 					const std::wstring_view fileName(findData.cFileName);
 
-					size_t periodIndex = fileName.find_last_of(L".");
+					size_t periodIndex = fileName.find_last_of(L'.');
 
 					if (periodIndex != std::wstring::npos)
 					{
