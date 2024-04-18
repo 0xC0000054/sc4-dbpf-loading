@@ -177,24 +177,21 @@ namespace
 }
 
 
-void cRZFileHooks::Install(uint16_t gameVersion)
+void cRZFileHooks::Install()
 {
-	if (gameVersion == 641)
+	Logger& logger = Logger::GetInstance();
+
+	try
 	{
-		Logger& logger = Logger::GetInstance();
+		InstallReadWithCountHook();
 
-		try
-		{
-			InstallReadWithCountHook();
-
-			logger.WriteLine(LogLevel::Info, "Installed the cRZFile hooks.");
-		}
-		catch (const std::exception& e)
-		{
-			logger.WriteLineFormatted(
-				LogLevel::Error,
-				"Failed to install the cRZFile hooks: %s",
-				e.what());
-		}
+		logger.WriteLine(LogLevel::Info, "Installed the cRZFile hooks.");
+	}
+	catch (const std::exception& e)
+	{
+		logger.WriteLineFormatted(
+			LogLevel::Error,
+			"Failed to install the cRZFile hooks: %s",
+			e.what());
 	}
 }

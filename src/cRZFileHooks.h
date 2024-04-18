@@ -15,5 +15,5 @@
 
 namespace cRZFileHooks
 {
-	void Install(uint16_t gameVersion);
+	void Install();
 };
