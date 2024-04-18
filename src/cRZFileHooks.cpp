@@ -28,7 +28,7 @@ namespace
 
 			DWORD bytesRead = 0;
 
-			if (!ReadFile(hFile, buffer, numBytesToRead, &bytesRead, nullptr))
+			if (!ReadFile(hFile, buffer + offset, numBytesToRead, &bytesRead, nullptr))
 			{
 				return false;
 			}
