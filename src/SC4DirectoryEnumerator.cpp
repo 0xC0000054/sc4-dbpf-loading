@@ -120,9 +120,85 @@ namespace
 			NativeScanDirectoryForDatFilesRecursive(path, datFiles);
 		}
 	}
+
+	void NativeScanDirectoryForSC4FilesRecursive(
+		const std::filesystem::path& directory,
+		std::vector<cRZBaseString>& sc4Files)
+	{
+		std::vector<std::filesystem::path> subFolders;
+
+		WIN32_FIND_DATAW findData{};
+
+		const std::filesystem::path searchPattern = AppendFileName(directory, AllFilesSearchPattern);
+
+		wil::unique_hfind findHandle(FindFirstFileExW(
+			searchPattern.c_str(),
+			FindExInfoBasic,
+			&findData,
+			FindExSearchNameMatch,
+			nullptr,
+			0));
+
+		if (findHandle)
+		{
+			do
+			{
+				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+				{
+					if (!wil::path_is_dot_or_dotdot(findData.cFileName))
+					{
+						subFolders.push_back(AppendFileName(directory, findData.cFileName));
+					}
+				}
+				else
+				{
+					const std::wstring_view fileName(findData.cFileName);
+
+					size_t periodIndex = fileName.find_last_of(L'.');
+
+					if (periodIndex != std::wstring::npos)
+					{
+						std::wstring_view extension = fileName.substr(periodIndex);
+
+						if (boost::istarts_with(extension, ".SC4"sv))
+						{
+							sc4Files.push_back(CreateUtf8FilePath(directory, findData.cFileName));
+						}
+					}
+				}
+			} while (FindNextFileW(findHandle.get(), &findData));
+
+			DWORD lastError = GetLastError();
+
+			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
+			{
+				ThrowExceptionForWin32Error("FindNextFileW", lastError);
+			}
+		}
+		else
+		{
+			DWORD lastError = GetLastError();
+
+			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
+			{
+				ThrowExceptionForWin32Error("FindFirstFileExW", lastError);
+			}
+		}
+
+		// Recursively search the sub-directories.
+		for (const auto& path : subFolders)
+		{
+			NativeScanDirectoryForSC4FilesRecursive(path, sc4Files);
+		}
+	}
 }
 
 void SC4DirectoryEnumerator::ScanDirectoryForDatFilesRecursive(const cIGZString& root, std::vector<cRZBaseString>& output)
 {
 	NativeScanDirectoryForDatFilesRecursive(GZStringConvert::ToFileSystemPath(root), output);
+}
+
+void SC4DirectoryEnumerator::ScanDirectoryForLooseSC4FilesRecursive(const cIGZString& root, std::vector<cRZBaseString>& output)
+{
+	NativeScanDirectoryForSC4FilesRecursive(GZStringConvert::ToFileSystemPath(root), output);
 }

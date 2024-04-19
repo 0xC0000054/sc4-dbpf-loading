@@ -14,6 +14,7 @@
 #include "cRZFileHooks.h"
 #include "DebugUtil.h"
 #include "Logger.h"
+#include "LooseSC4PluginScanPatch.h"
 #include "MultiPackedFile.h"
 #include "Patcher.h"
 #include "SC4VersionDetection.h"
@@ -64,114 +65,32 @@ namespace
 		return temp.parent_path();
 	}
 
-	void DisableResourceLoadDebuggingCode(uint16_t gameVersion)
+	void DisableResourceLoadDebuggingCode()
 	{
 		Logger& logger = Logger::GetInstance();
-
-		if (gameVersion == 641)
+		try
 		{
-			try
-			{
-				// The method that scans for plugins on startup (cSC4App::UpdateResources) has some debugging code that
-				// always runs when the extra cheats plugin is installed. The extra cheats plugin sets a value to enable
-				// the cheat codes and other internal debug functionality that Maxis used when developing the game.
-				// This resource debug code appears to have possibly been doing some kind of logging in debug builds of
-				// of the game, but it just wastes CPU time in the retail builds.
-				//
-				// We modify that check to make the game think that the internal debug mode is always disabled by
-				// replacing the conditional short jump that is taken when the pointer is null with an unconditional
-				// short jump.
-				//
-				// Original instruction: 0x74 (JZ rel8).
-				// New instruction: 0xEB (JMP rel8).
-				Patcher::OverwriteMemory(0x4572CE, static_cast<uint8_t>(0xEB));
-				logger.WriteLine(LogLevel::Info, "Disabled the built-in DBPF loading debug code.");
-			}
-			catch (const std::exception& e)
-			{
-				logger.WriteLineFormatted(
-					LogLevel::Error,
-					"Failed to disable the built-in DBPF loading debug code: %s",
-					e.what());
-			}
-		}
-	}
-
-	bool HasDBPFFileExtension(const std::string_view& file)
-	{
-		// Assume that the file has a DBPF extension.
-
-		bool result = true;
-
-		const size_t periodOffset = file.find_last_of('.');
-
-		if (periodOffset != std::string_view::npos && periodOffset != (file.length() - 1))
-		{
-			std::string_view ext = file.substr(periodOffset);
-
-			// The non-DAT DBPF plugins all use a file extension starting with .SC4, these files
-			// should use one of the following extensions: .SC4, .SC4Desc, .SC4Lot or .SC4Model.
-			result = boost::istarts_with(ext, ".SC4"sv);
-		}
-
-		return result;
-	}
-
-	typedef int32_t(__cdecl *pfn_cGZDBSegmentPackedFile_IsDatabaseFile)(cIGZString const& path, bool scanEntireFile);
-
-	static pfn_cGZDBSegmentPackedFile_IsDatabaseFile RealIsDatabaseFile = nullptr;
-
-	static int32_t __cdecl HookedIsDatabaseFile(cIGZString const& path, bool scanEntireFile)
-	{
-#ifdef _DEBUG
-		//PrintLineToDebugOutput(path.ToChar());
-#endif // _DEBUG
-
-		// SC4 checks every file in its plugins folders that does not have a .dat file extension to
-		// see if it is a DBPF file, this can include file extensions such as .dll, .zip, etc.
-		//
-		// As a performance optimization, we check that the file extension starts .SC4, this will
-		// restrict the DBPF header check to .SC4, .SC4Desc, .SC4Lot or .SC4Model.
-		// SC4 will check the file signature when it opens the file and validates the header.
-		//
-		// The method treats -1 as false, and any other value as true.
-
-		return HasDBPFFileExtension(path.ToChar()) ? 1 : -1;
-	}
-
-	void InstallIsDatabaseFileHook(uint16_t gameVersion)
-	{
-		if (gameVersion == 641)
-		{
-			Logger& logger = Logger::GetInstance();
-
-			// The cGZDBSegmentPackedFile::IsDatabaseFile method is only called by the method that scans
-			// for plugins on startup (cSC4App::UpdateResources), so we don't need to unhook it after
-			// that code runs.
+			// The method that scans for plugins on startup (cSC4App::UpdateResources) has some debugging code that
+			// always runs when the extra cheats plugin is installed. The extra cheats plugin sets a value to enable
+			// the cheat codes and other internal debug functionality that Maxis used when developing the game.
+			// This resource debug code appears to have possibly been doing some kind of logging in debug builds of
+			// of the game, but it just wastes CPU time in the retail builds.
 			//
-			// Using Detours to hook the original method was simpler than trying to patch the 3
-			// locations in cSC4App::UpdateResources where it is called.
-
-			try
-			{
-				RealIsDatabaseFile = reinterpret_cast<pfn_cGZDBSegmentPackedFile_IsDatabaseFile>(0x9728D5);
-
-				DetourRestoreAfterWith();
-
-				DetourTransactionBegin();
-				DetourUpdateThread(GetCurrentThread());
-				DetourAttach(&(PVOID&)RealIsDatabaseFile, HookedIsDatabaseFile);
-				DetourTransactionCommit();
-
-				logger.WriteLine(LogLevel::Info, "Patched cGZDBSegmentPackedFile::IsDatabaseFile.");
-			}
-			catch (const std::exception& e)
-			{
-				logger.WriteLineFormatted(
-					LogLevel::Error,
-					"Failed to patch cGZDBSegmentPackedFile::IsDatabaseFile: %s",
-					e.what());
-			}
+			// We modify that check to make the game think that the internal debug mode is always disabled by
+			// replacing the conditional short jump that is taken when the pointer is null with an unconditional
+			// short jump.
+			//
+			// Original instruction: 0x74 (JZ rel8).
+			// New instruction: 0xEB (JMP rel8).
+			Patcher::OverwriteMemory(0x4572CE, static_cast<uint8_t>(0xEB));
+			logger.WriteLine(LogLevel::Info, "Disabled the built-in DBPF loading debug code.");
+		}
+		catch (const std::exception& e)
+		{
+			logger.WriteLineFormatted(
+				LogLevel::Error,
+				"Failed to disable the built-in DBPF loading debug code: %s",
+				e.what());
 		}
 	}
 
@@ -188,31 +107,28 @@ namespace
 		return -1;
 	}
 
-	void InstallDBPFOpenFindHeaderRecordHook(uint16_t gameVersion)
+	void InstallDBPFOpenFindHeaderRecordHook()
 	{
-		if (gameVersion == 641)
+		Logger& logger = Logger::GetInstance();
+
+		// The cGZDBSegmentPackedFile::FindHeaderRecord method is called when
+		// the game opens a DBPF file and the header validation fails.
+		// This method scan the entire file for a 16-byte magic signature, and if
+		// it is found the data following the signature is loaded as a DBPF file.
+		//
+		// Our version always tells the game that this magic signature was not found.
+
+		try
 		{
-			Logger& logger = Logger::GetInstance();
-
-			// The cGZDBSegmentPackedFile::FindHeaderRecord method is called when
-			// the game opens a DBPF file and the header validation fails.
-			// This method scan the entire file for a 16-byte magic signature, and if
-			// it is found the data following the signature is loaded as a DBPF file.
-			//
-			// Our version always tells the game that this magic signature was not found.
-
-			try
-			{
-				Patcher::InstallCallHook(0x9729e1, &HookedFindHeaderRecord);
-				logger.WriteLine(LogLevel::Info, "Patched the DBPF Open header check.");
-			}
-			catch (const std::exception& e)
-			{
-				logger.WriteLineFormatted(
-					LogLevel::Error,
-					"Failed to patch the DBPF Open header check: %s",
-					e.what());
-			}
+			Patcher::InstallCallHook(0x9729e1, &HookedFindHeaderRecord);
+			logger.WriteLine(LogLevel::Info, "Patched the DBPF Open header check.");
+		}
+		catch (const std::exception& e)
+		{
+			logger.WriteLineFormatted(
+				LogLevel::Error,
+				"Failed to patch the DBPF Open header check: %s",
+				e.what());
 		}
 	}
 
@@ -243,30 +159,28 @@ namespace
 		return result;
 	}
 
-	void InstallMissingPluginDialogHexPatch(uint16_t gameVersion)
+	void InstallMissingPluginDialogHexPatch()
 	{
-		if (gameVersion == 641)
-		{
-			Logger& logger = Logger::GetInstance();
-			// We wrap the cRZString::Sprintf call that SC4 used to print the missing plugin pack
-			// message and replace the format string with one that includes the plugin pack id as
-			// a hexadecimal number.
+		Logger& logger = Logger::GetInstance();
+		// We wrap the cRZString::Sprintf call that SC4 used to print the missing plugin pack
+		// message and replace the format string with one that includes the plugin pack id as
+		// a hexadecimal number.
 
-			try
-			{
-				RealRZStringSprintf = reinterpret_cast<RZString_Sprintf>(0x90F574);
-				Patcher::InstallCallHook(0x48C603, &Hooked_MissingPluginPackSprintf);
-				logger.WriteLine(LogLevel::Info, "Changed the missing plugin error message to use hexadecimal.");
-			}
-			catch (const std::exception& e)
-			{
-				logger.WriteLineFormatted(
-					LogLevel::Error,
-					"Failed to change the missing plugin error message to use hexadecimal: %s",
-					e.what());
-			}
+		try
+		{
+			RealRZStringSprintf = reinterpret_cast<RZString_Sprintf>(0x90F574);
+			Patcher::InstallCallHook(0x48C603, &Hooked_MissingPluginPackSprintf);
+			logger.WriteLine(LogLevel::Info, "Changed the missing plugin error message to use hexadecimal.");
+		}
+		catch (const std::exception& e)
+		{
+			logger.WriteLineFormatted(
+				LogLevel::Error,
+				"Failed to change the missing plugin error message to use hexadecimal: %s",
+				e.what());
 		}
 	}
+
 
 	enum class ResourceLoadingTraceOption
 	{
@@ -368,11 +282,11 @@ namespace
 
 		if (gameVersion == 641)
 		{
-			DisableResourceLoadDebuggingCode(gameVersion);
-			InstallIsDatabaseFileHook(gameVersion);
-			InstallDBPFOpenFindHeaderRecordHook(gameVersion);
-			InstallMissingPluginDialogHexPatch(gameVersion);
-			cRZFileHooks::Install(gameVersion);
+			DisableResourceLoadDebuggingCode();
+			InstallDBPFOpenFindHeaderRecordHook();
+			InstallMissingPluginDialogHexPatch();
+			cRZFileHooks::Install();
+			LooseSC4PluginScanPatch::Install();
 
 			switch (resourceLoadingTraceOption)
 			{

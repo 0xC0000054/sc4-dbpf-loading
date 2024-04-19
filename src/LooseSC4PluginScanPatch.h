@@ -11,9 +11,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <cstdint>
 
-namespace cRZFileHooks
+namespace LooseSC4PluginScanPatch
 {
 	void Install();
-};
+}

@@ -39,6 +39,7 @@
     <ClCompile Include="Patcher.cpp" />
     <ClCompile Include="PersistResourceKeyList.cpp" />
     <ClCompile Include="SC4DirectoryEnumerator.cpp" />
+    <ClCompile Include="LooseSC4PluginScanPatch.cpp" />
     <ClCompile Include="SC4VersionDetection.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
     <ClCompile Include="StringViewUtil.cpp" />
@@ -64,6 +65,7 @@
     <ClInclude Include="PersistResourceKeyHash.h" />
     <ClInclude Include="PersistResourceKeyList.h" />
     <ClInclude Include="SC4DirectoryEnumerator.h" />
+    <ClInclude Include="LooseSC4PluginScanPatch.h" />
     <ClInclude Include="SC4VersionDetection.h" />
     <ClInclude Include="Stopwatch.h" />
     <ClInclude Include="StringViewUtil.h" />
