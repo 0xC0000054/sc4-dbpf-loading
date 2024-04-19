@@ -137,13 +137,15 @@ namespace
 			// 1. The game's read buffer size is greater than 0 and less than the requested read size.
 			// 2. The file is at the correct position to start reading.
 			// 3. The game's existing read buffer is empty.
+			// 4. The write buffer is empty.
 			//
 			// If any of these conditions are not met, the call will be forwarded to the game's
 			// original read method.
 			if (byteCount >= pThis->maxReadBufferSize
 				&& pThis->maxReadBufferSize > 0
 				&& pThis->position == pThis->currentFilePosition
-				&& (pThis->currentFilePosition < pThis->readBufferOffset || (pThis->readBufferOffset + pThis->readBufferLength) <= pThis->currentFilePosition))
+				&& (pThis->currentFilePosition < pThis->readBufferOffset || (pThis->readBufferOffset + pThis->readBufferLength) <= pThis->currentFilePosition)
+				&& pThis->writeBufferLength == 0)
 			{
 				if (ReadFileBlocking(pThis->fileHandle, static_cast<BYTE*>(outBuffer), byteCount))
 				{
