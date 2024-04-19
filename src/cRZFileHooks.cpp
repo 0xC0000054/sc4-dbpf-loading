@@ -126,42 +126,49 @@ namespace
 
 		if (pThis->isOpen)
 		{
-			// If the requested number of bytes is larger than the games buffer size, we will attempt
-			// to fill the buffer with as much data as the OS can provide per call.
-			// This can significantly reduce the required number of system calls for large reads when
-			// compared to the game's standard behavior of copying from a fixed-size buffer in a loop.
-			//
-			// To minimize complexity and potential compatibility issues, our code only runs when the
-			// following conditions are true:
-			//
-			// 1. The game's read buffer size is greater than 0 and less than the requested read size.
-			// 2. The file is at the correct position to start reading.
-			// 3. The game's existing read buffer is empty.
-			// 4. The write buffer is empty.
-			//
-			// If any of these conditions are not met, the call will be forwarded to the game's
-			// original read method.
-			if (byteCount >= pThis->maxReadBufferSize
-				&& pThis->maxReadBufferSize > 0
-				&& pThis->position == pThis->currentFilePosition
-				&& (pThis->currentFilePosition < pThis->readBufferOffset || (pThis->readBufferOffset + pThis->readBufferLength) <= pThis->currentFilePosition)
-				&& pThis->writeBufferLength == 0)
+			if (byteCount == 0)
 			{
-				if (ReadFileBlocking(pThis->fileHandle, static_cast<BYTE*>(outBuffer), byteCount))
-				{
-					pThis->position += byteCount;
-					result = true;
-				}
-				else
-				{
-					pThis->fileIOError = GetRZFileErrorCode();
-					pThis->position = SetFilePointer(pThis->fileHandle, 0, nullptr, FILE_CURRENT);
-				}
-				pThis->currentFilePosition = pThis->position;
+				result = true;
 			}
 			else
 			{
-				result = RealReadWithCount(pThis, outBuffer, byteCount);
+				// If the requested number of bytes is larger than the games buffer size, we will attempt
+				// to fill the buffer with as much data as the OS can provide per call.
+				// This can significantly reduce the required number of system calls for large reads when
+				// compared to the game's standard behavior of copying from a fixed-size buffer in a loop.
+				//
+				// To minimize complexity and potential compatibility issues, our code only runs when the
+				// following conditions are true:
+				//
+				// 1. The game's read buffer size is greater than 0 and less than the requested read size.
+				// 2. The file is at the correct position to start reading.
+				// 3. The game's existing read buffer is empty.
+				// 4. The write buffer is empty.
+				//
+				// If any of these conditions are not met, the call will be forwarded to the game's
+				// original read method.
+				if (byteCount >= pThis->maxReadBufferSize
+					&& pThis->maxReadBufferSize > 0
+					&& pThis->position == pThis->currentFilePosition
+					&& (pThis->currentFilePosition < pThis->readBufferOffset || (pThis->readBufferOffset + pThis->readBufferLength) <= pThis->currentFilePosition)
+					&& pThis->writeBufferLength == 0)
+				{
+					if (ReadFileBlocking(pThis->fileHandle, static_cast<BYTE*>(outBuffer), byteCount))
+					{
+						pThis->position += byteCount;
+						result = true;
+					}
+					else
+					{
+						pThis->fileIOError = GetRZFileErrorCode();
+						pThis->position = SetFilePointer(pThis->fileHandle, 0, nullptr, FILE_CURRENT);
+					}
+					pThis->currentFilePosition = pThis->position;
+				}
+				else
+				{
+					result = RealReadWithCount(pThis, outBuffer, byteCount);
+				}
 			}
 		}
 
