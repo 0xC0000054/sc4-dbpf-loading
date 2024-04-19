@@ -33,9 +33,9 @@ namespace
 		{
 			DWORD numBytesToRead = 0x80000000UL;
 
-			if (count < numBytesToRead)
+			if (bytesRemaining < numBytesToRead)
 			{
-				numBytesToRead = static_cast<DWORD>(count);
+				numBytesToRead = static_cast<DWORD>(bytesRemaining);
 			}
 
 			DWORD bytesRead = 0;
