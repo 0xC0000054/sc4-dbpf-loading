@@ -81,7 +81,10 @@ namespace
 		cRZString nameRZStr;
 		int isOpen;
 		HANDLE fileHandle;
-		intptr_t unknown2[4];
+		uint32_t accessMode;
+		uint32_t creationMode;
+		uint32_t shareMode;
+		intptr_t unknown2;
 		uint32_t fileIOError;
 		intptr_t unknown3[5];
 		uint32_t currentFilePosition;
