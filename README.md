@@ -1,21 +1,27 @@
 # sc4-dbpf-loading
 
-A DLL Plugin for SimCity 4 that optimizes the DBPF loading.   
+A DLL Plugin for SimCity 4 that optimizes the DBPF plugin loading that the game performs on startup.   
 
-This is an experimental plugin that provide the following features:
+# Warning
 
+This plugin is **EXPERIMENTAL**. It may cause CTDs or other issues.
+You should download it for **TESTING PURPOSES ONLY** and backup your plugins/regions before testing it.
+
+The plugin can be downloaded from the Releases tab: https://github.com/0xC0000054/sc4-dbpf-loading/releases
+
+## Features
+
+* Reduces the time for the game to show its splash screen by up to 90%.
+* Adds an optimization to the game code for large data reads.
 * Disables the game code that searches the entire file if the DBPF signature was not found.
-* Replaces one DBPF signature check with a file extension check, the plugin tells the game that any file with a 
-.SC4 extension (.SC4, .SC4Lot, etc.) is DBPF. This removes one file open/read call, SC4 will still check the
-signature when it loads the plugin file.
-* Changes the 'missing plugin' dialog to display the plugin pack ID in hexadecimal (untested).
+* Disables the game code that tries to load files in the plugins folders with non-DBPF file extensions (.txt, .png, etc.). 
+    * With this change, only .DAT, .SC4Desc, .SC4Lot, etc. will be considered for loading as DBPF files.
+* Changes the 'missing plugin' dialog to display the plugin pack ID in hexadecimal.
 * Adds a `-StartupDBPFLoadTrace:` command line argument with the following options:
     * `ShowLoadTime` - shows a message box with the resource loading time in milliseconds.
     * `WinAPI` - shows message boxes before and after the resource loading code runs, this allows the user to start and stop a Process Monitor trace when the message box is shown.
     * `ListLoadedFiles` - writes the loaded DBPF files to the plugin's log file in the order SC4 reads them.
     
-The plugin can be downloaded from the Releases tab: https://github.com/0xC0000054/sc4-dbpf-loading/releases
-
 ## System Requirements
 
 * SimCity 4 version 641
@@ -26,7 +32,7 @@ The plugin may work on Windows 7 or later with the [Microsoft Visual C++ 2022 x8
 ## Installation
 
 1. Close SimCity 4.
-2. Copy `SC4DBPFLoading.dll` into the Plugins folder in the SimCity 4 installation directory.
+2. Copy `SC4DBPFLoading.dll` into the top-level of the Plugins folder in the SimCity 4 installation directory or Documents/SimCity 4 directory.
 3. Start SimCity 4.
 
 ## Troubleshooting
