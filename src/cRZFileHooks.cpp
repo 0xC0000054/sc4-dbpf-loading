@@ -24,34 +24,6 @@
 
 namespace
 {
-	bool ReadFileBlocking(HANDLE hFile, BYTE* buffer, size_t count)
-	{
-		size_t offset = 0;
-		size_t bytesRemaining = count;
-
-		while (bytesRemaining > 0)
-		{
-			DWORD numBytesToRead = 0x80000000UL;
-
-			if (bytesRemaining < numBytesToRead)
-			{
-				numBytesToRead = static_cast<DWORD>(bytesRemaining);
-			}
-
-			DWORD bytesRead = 0;
-
-			if (!ReadFile(hFile, buffer + offset, numBytesToRead, &bytesRead, nullptr))
-			{
-				return false;
-			}
-
-			offset += bytesRead;
-			bytesRemaining -= bytesRead;
-		}
-
-		return true;
-	}
-
 	DWORD GetRZFileErrorCode()
 	{
 		DWORD lastError = GetLastError();
@@ -153,8 +125,10 @@ namespace
 					&& (pThis->currentFilePosition < pThis->readBufferOffset || (pThis->readBufferOffset + pThis->readBufferLength) <= pThis->currentFilePosition)
 					&& pThis->writeBufferLength == 0)
 				{
-					if (ReadFileBlocking(pThis->fileHandle, static_cast<BYTE*>(outBuffer), byteCount))
+					DWORD bytesRead = 0;
+					if (ReadFile(pThis->fileHandle, outBuffer, static_cast<DWORD>(byteCount), &bytesRead, nullptr))
 					{
+						byteCount = static_cast<uint32_t>(bytesRead);
 						pThis->position += byteCount;
 						result = true;
 					}
