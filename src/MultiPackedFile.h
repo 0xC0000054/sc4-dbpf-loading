@@ -99,16 +99,6 @@ private:
 		cIGZString const& path,
 		cIGZCOM* const pCOM);
 
-	struct EnumResKeyContext
-	{
-		MultiPackedFile* pThis;
-		cIGZPersistDBSegment* parentDBSegment;
-
-		EnumResKeyContext(MultiPackedFile* file, cIGZPersistDBSegment* segment);
-	};
-
-	static void EnumResKeyListCallback(cGZPersistResourceKey const& key, void* pContext);
-
 	uint32_t refCount;
 	uint32_t segmentID;
 	cRZBaseString folderPath;

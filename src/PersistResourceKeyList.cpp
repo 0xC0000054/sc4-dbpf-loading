@@ -21,6 +21,11 @@ PersistResourceKeyList::~PersistResourceKeyList()
 {
 }
 
+const std::vector<cGZPersistResourceKey>& PersistResourceKeyList::GetKeys() const
+{
+	return keys;
+}
+
 bool PersistResourceKeyList::QueryInterface(uint32_t riid, void** ppvObj)
 {
 	if (riid == GZIID_cIGZPersistResourceKeyList)

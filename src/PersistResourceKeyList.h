@@ -15,12 +15,16 @@
 #include "PersistResourceKeyHash.h"
 #include <vector>
 
-class PersistResourceKeyList : public cIGZPersistResourceKeyList
+class PersistResourceKeyList final : public cIGZPersistResourceKeyList
 {
 public:
 	PersistResourceKeyList();
 
 	~PersistResourceKeyList();
+
+	const std::vector<cGZPersistResourceKey>& GetKeys() const;
+
+	// cIGZPersistResourceKeyList
 
 	bool QueryInterface(uint32_t riid, void** ppvObj) override;
 

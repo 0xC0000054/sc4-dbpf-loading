@@ -618,9 +618,11 @@ bool MultiPackedFile::SetupGZPersistDBSegment(
 					pKeyList->EraseAll();
 					pSegment->GetResourceKeyList(pKeyList, nullptr);
 
-					EnumResKeyContext context(this, pSegment);
-
-					pKeyList->EnumKeys(&EnumResKeyListCallback, &context);
+					const std::vector<cGZPersistResourceKey>& keys = pKeyList->GetKeys();
+					for (const cGZPersistResourceKey& key : keys)
+					{
+						tgiMap.insert_or_assign(key, pSegment);
+					}
 					result = true;
 				}
 			}
@@ -630,16 +632,3 @@ bool MultiPackedFile::SetupGZPersistDBSegment(
 	return result;
 }
 
-void MultiPackedFile::EnumResKeyListCallback(cGZPersistResourceKey const& key, void* pContext)
-{
-	EnumResKeyContext* pState = static_cast<EnumResKeyContext*>(pContext);
-
-	pState->pThis->tgiMap.insert_or_assign(key, pState->parentDBSegment);
-}
-
-MultiPackedFile::EnumResKeyContext::EnumResKeyContext(
-	MultiPackedFile* file,
-	cIGZPersistDBSegment* segment)
-	: pThis(file), parentDBSegment(segment)
-{
-}
