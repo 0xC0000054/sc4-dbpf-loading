@@ -81,7 +81,7 @@ bool PersistResourceKeyList::Insert(cGZPersistResourceKey const& key)
 
 bool PersistResourceKeyList::Insert(cIGZPersistResourceKeyList const& list)
 {
-	EnumKeys(&InsertKeyCallback, this);
+	list.EnumKeys(&InsertKeyCallback, this);
 	return true;
 }
 
