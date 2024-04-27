@@ -89,7 +89,7 @@ bool PersistResourceKeyList::Erase(cGZPersistResourceKey const& key)
 {
 	bool result = false;
 
-	for (const auto& entry = keys.begin(); entry != keys.end();)
+	for (auto entry = keys.begin(); entry != keys.end(); entry++)
 	{
 		if (entry->instance == key.instance
 			&& entry->group == key.group
