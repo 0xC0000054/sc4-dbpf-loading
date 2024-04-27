@@ -432,11 +432,11 @@ bool MultiPackedFile::DeleteRecord(cGZPersistResourceKey const& key)
 	return false;
 }
 
-bool MultiPackedFile::ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize)
+uint32_t MultiPackedFile::ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
-	bool result = false;
+	uint32_t result = 0;
 
 	if (isOpen)
 	{

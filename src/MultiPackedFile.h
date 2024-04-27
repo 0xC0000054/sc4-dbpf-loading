@@ -72,7 +72,7 @@ public:
 	bool AbortRecord(cIGZPersistDBRecord** record) override;
 
 	bool DeleteRecord(cGZPersistResourceKey const& key) override;
-	bool ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize) override;
+	uint32_t ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize) override;
 	bool WriteRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t recordSize) override;
 
 	bool Init(uint32_t segmentID, cIGZString const& path, bool unknown2) override;

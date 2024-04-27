@@ -47,7 +47,7 @@ public:
 	virtual bool AbortRecord(cIGZPersistDBRecord** record) = 0;
 
 	virtual bool DeleteRecord(cGZPersistResourceKey const& key) = 0;
-	virtual bool ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize) = 0;
+	virtual uint32_t ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize) = 0;
 	virtual bool WriteRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t recordSize) = 0;
 
 	virtual bool Init(uint32_t segmentID, cIGZString const& path, bool unknown2) = 0;
