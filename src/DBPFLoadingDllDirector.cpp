@@ -305,103 +305,6 @@ namespace
 				gameVersion);
 		}
 	}
-
-#ifdef _DEBUG
-	typedef bool(_cdecl *pfn_DoesDirectoryExist)(cIGZString const& path);
-
-	static pfn_DoesDirectoryExist RealDoesDirectoryExist = reinterpret_cast<pfn_DoesDirectoryExist>(0x91B6CA);
-
-	static bool __cdecl HookedDoesDiectoryExist(cIGZString const& path)
-	{
-		DebugUtil::PrintLineToDebugOutput(path.ToChar());
-
-		bool result = RealDoesDirectoryExist(path);
-
-		return result;
-	}
-
-	void InstallDoesDirectoryExistHook()
-	{
-		DetourRestoreAfterWith();
-
-		DetourTransactionBegin();
-		DetourUpdateThread(GetCurrentThread());
-		DetourAttach(&(PVOID&)RealDoesDirectoryExist, HookedDoesDiectoryExist);
-		DetourTransactionCommit();
-	}
-
-	void RemoveDoesDirectoryExistHook()
-	{
-		DetourTransactionBegin();
-		DetourUpdateThread(GetCurrentThread());
-		DetourDetach(&(PVOID&)RealDoesDirectoryExist, HookedDoesDiectoryExist);
-		DetourTransactionCommit();
-	}
-
-	cRZBaseString GetSC4InstallFolderFilePath(cIGZFrameWork* const pFramework, const char* const fileName)
-	{
-		cRZBaseString path;
-
-		cIGZApp* const pApp = pFramework->Application();
-
-		cRZAutoRefCount<cISC4App> pSC4App;
-
-		if (pApp->QueryInterface(GZIID_cISC4App, pSC4App.AsPPVoid()))
-		{
-			cRZBaseString installDir;
-
-			pSC4App->GetDataDirectory(installDir, -1);
-
-			path.Append(installDir);
-
-			if (path.Strlen() > 0)
-			{
-				char lastPathChar = path.Data()[path.Strlen() - 1];
-
-				if (lastPathChar != '\\' && lastPathChar != '/')
-				{
-					path.Append("\\", 1);
-				}
-			}
-
-			path.Append(fileName, strlen(fileName));
-		}
-
-		return path;
-	}
-
-	void Trace_GZDBSegmentPackedFile_GetResourceKeys(cIGZCOM* pCOM)
-	{
-		cRZBaseString path = GetSC4InstallFolderFilePath(pCOM->FrameWork(), "EP1.dat");
-
-		cRZAutoRefCount<cIGZDBSegmentPackedFile> packedFile;
-
-		if (pCOM->GetClassObject(GZCLSID_cGZDBSegmentPackedFile, GZIID_cIGZDBSegmentPackedFile, packedFile.AsPPVoid()))
-		{
-			if (packedFile->Init())
-			{
-				if (packedFile->SetPath(path))
-				{
-					cIGZPersistDBSegment* pSegment = packedFile->AsIGZPersistDBSegment();
-
-					if (pSegment && pSegment->Open(true, false))
-					{
-						cRZAutoRefCount<cIGZPersistResourceKeyList> pList;
-
-						if (pCOM->GetClassObject(GZCLSID_cIGZPersistResourceKeyList, GZIID_cIGZPersistResourceKeyList, pList.AsPPVoid()))
-						{
-							if (pSegment->GetResourceKeyList(pList, nullptr))
-							{
-								DebugUtil::PrintLineToDebugOutputFormatted("%u resource keys", pList->Size());
-							}
-						}
-					}
-				}
-
-			}
-		}
-	}
-#endif // _DEBUG
 }
 
 static cIGZUnknown* CreateMultiPackedFile()
@@ -478,8 +381,6 @@ private:
 
 		InstallMemoryPatches();
 
-		//Trace_GZDBSegmentPackedFile_GetResourceKeys(pCOM);
-
 		if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ListLoadedFiles)
 		{
 			if (pFramework->GetState() < cIGZFrameWork::kStatePreAppInit)
@@ -495,17 +396,8 @@ private:
 		return true;
 	}
 
-	bool PreAppInit()
-	{
-		//InstallDoesDirectoryExistHook();
-
-		return true;
-	}
-
 	bool PostAppInit()
 	{
-		//RemoveDoesDirectoryExistHook();
-
 		if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ListLoadedFiles)
 		{
 			cIGZPersistResourceManagerPtr pResMan;
