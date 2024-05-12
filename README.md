@@ -62,6 +62,7 @@ See [LICENSE.txt](LICENSE.txt) for more information.
 ## Prerequisites
 
 * Visual Studio 2022
+* [VCPkg](https://github.com/microsoft/vcpkg) with the Visual Studio integration
 
 ## Building the plugin
 
