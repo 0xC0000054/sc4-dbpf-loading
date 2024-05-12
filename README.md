@@ -2,11 +2,6 @@
 
 A DLL Plugin for SimCity 4 that optimizes the DBPF plugin loading that the game performs on startup.   
 
-# Warning
-
-This plugin is **EXPERIMENTAL**. It may cause CTDs or other issues.
-You should download it for **TESTING PURPOSES ONLY** and backup your plugins/regions before testing it.
-
 The plugin can be downloaded from the Releases tab: https://github.com/0xC0000054/sc4-dbpf-loading/releases
 
 ## Features
