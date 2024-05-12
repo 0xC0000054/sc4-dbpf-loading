@@ -73,6 +73,16 @@ namespace
 
 			result = boost::istarts_with(extension, ".SC4"sv);
 		}
+		else
+		{
+			// Files without an extension are treated as potential .SC4* files, there
+			// are released plugins that don't have a file extension.
+			// For example, Bosham Church by mintoes
+			//
+			// If the file is not a DBPF file, it will fail the signature check that the game
+			// performs when loading DBPF files and the plugin will log it as an error.
+			result = true;
+		}
 
 		return result;
 	}
