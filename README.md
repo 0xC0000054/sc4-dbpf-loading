@@ -13,10 +13,6 @@ The plugin can be downloaded from the Releases tab: https://github.com/0xC000005
     * With this change only .SC4Desc, .SC4Lot, .SC4Model, and files without any file extension will be loaded.
     * Files without any file extension are included due to some older plugins having that issue.
 * Changes the 'missing plugin' dialog to display the plugin pack ID in hexadecimal.
-* Adds a `-StartupDBPFLoadTrace:` command line argument with the following options:
-    * `ShowLoadTime` - shows a message box with the resource loading time in milliseconds.
-    * `WinAPI` - shows message boxes before and after the resource loading code runs, this allows the user to start and stop a Process Monitor trace when the message box is shown.
-    * `ListLoadedFiles` - writes the loaded DBPF files to the plugin's log file in the order SC4 reads them.
     
 ## System Requirements
 
@@ -30,6 +26,16 @@ The plugin may work on Windows 7 or later with the [Microsoft Visual C++ 2022 x8
 1. Close SimCity 4.
 2. Copy `SC4DBPFLoading.dll` into the top-level of the Plugins folder in the SimCity 4 installation directory or Documents/SimCity 4 directory.
 3. Start SimCity 4.
+
+### Command Line Argument
+
+The plugin adds a `-StartupDBPFLoadTrace:` command line argument that can be used for advanced tracing/debugging 
+of the plugin loading process.
+It supports to following options (only 1 can be used at a time):
+
+* `ShowLoadTime` - shows a message box with the resource loading time in milliseconds.
+* `WinAPI` - shows message boxes before and after the resource loading code runs, this allows the user to start and stop a Process Monitor trace when the message box is shown.
+* `ListLoadedFiles` - writes the loaded DBPF files to the plugin's log file in the order SC4 reads them.
 
 ## Troubleshooting
 
