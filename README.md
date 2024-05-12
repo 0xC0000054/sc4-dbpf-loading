@@ -11,11 +11,12 @@ The plugin can be downloaded from the Releases tab: https://github.com/0xC000005
 
 ## Features
 
-* Reduces the time for the game to show its splash screen by up to 90%.
+* Reduces the time for the game to show the SC4 logo by up to 90%.
 * Adds an optimization to the game code for large data reads.
 * Disables the game code that searches the entire file if the DBPF signature was not found.
-* Disables the game code that tries to load files in the plugins folders with non-DBPF file extensions (.txt, .png, etc.). 
-    * With this change, only .DAT, .SC4Desc, .SC4Lot, etc. will be considered for loading as DBPF files.
+* Changes the game code that loads the `.SC4*` files to ignore files with non-DBPF file extensions, .txt, .png, etc. 
+    * With this change only .SC4Desc, .SC4Lot, .SC4Model, and files without any file extension will be loaded.
+    * Files without any file extension are included due to some older plugins having that issue.
 * Changes the 'missing plugin' dialog to display the plugin pack ID in hexadecimal.
 * Adds a `-StartupDBPFLoadTrace:` command line argument with the following options:
     * `ShowLoadTime` - shows a message box with the resource loading time in milliseconds.
