@@ -24,6 +24,34 @@
 
 namespace
 {
+	bool ReadFileBlocking(HANDLE hFile, uint8_t* buffer, uint32_t byteCount, uint32_t& bytesRead)
+	{
+		uint32_t remaining = byteCount;
+
+		bytesRead = 0;
+
+		while (remaining > 0)
+		{
+			const DWORD numberOfBytesToRead = std::min(0x80000000UL, static_cast<DWORD>(remaining));
+			DWORD numberOfBytesRead = 0;
+
+			if (!ReadFile(hFile, buffer + bytesRead, numberOfBytesToRead, &numberOfBytesRead, nullptr))
+			{
+				return false;
+			}
+
+			if (numberOfBytesRead == 0)
+			{
+				break;
+			}
+
+			bytesRead += static_cast<uint32_t>(numberOfBytesRead);
+			remaining -= static_cast<uint32_t>(numberOfBytesRead);
+		}
+
+		return true;
+	}
+
 	DWORD GetRZFileErrorCode()
 	{
 		DWORD lastError = GetLastError();
@@ -125,11 +153,11 @@ namespace
 					&& (pThis->currentFilePosition < pThis->readBufferOffset || (pThis->readBufferOffset + pThis->readBufferLength) <= pThis->currentFilePosition)
 					&& pThis->writeBufferLength == 0)
 				{
-					DWORD bytesRead = 0;
-					if (ReadFile(pThis->fileHandle, outBuffer, static_cast<DWORD>(byteCount), &bytesRead, nullptr))
+					uint32_t bytesRead = 0;
+					if (ReadFileBlocking(pThis->fileHandle, static_cast<uint8_t*>(outBuffer), byteCount, bytesRead))
 					{
-						byteCount = static_cast<uint32_t>(bytesRead);
-						pThis->position += byteCount;
+						byteCount = bytesRead;
+						pThis->position += bytesRead;
 						result = true;
 					}
 					else
