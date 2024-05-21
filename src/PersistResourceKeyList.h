@@ -12,10 +12,11 @@
 
 #pragma once
 #include "cIGZPersistResourceKeyList.h"
+#include "cRZBaseUnknown.h"
 #include "PersistResourceKeyHash.h"
 #include <vector>
 
-class PersistResourceKeyList final : public cIGZPersistResourceKeyList
+class PersistResourceKeyList final : public cRZBaseUnkown, public cIGZPersistResourceKeyList
 {
 public:
 	PersistResourceKeyList();
@@ -47,7 +48,6 @@ public:
 private:
 	static void InsertKeyCallback(cGZPersistResourceKey const& key, void* pContext);
 
-	uint32_t refCount;
 	std::vector<cGZPersistResourceKey> keys;
 };
 

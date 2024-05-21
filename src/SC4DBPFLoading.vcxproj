@@ -21,6 +21,7 @@
     <ClCompile Include="..\vendor\EASTL\source\string.cpp" />
     <ClCompile Include="..\vendor\EASTL\source\thread_support.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\src\cRZBaseString.cpp" />
+    <ClCompile Include="..\vendor\gzcom-dll\src\cRZBaseUnknown.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\src\cRZBaseVariant.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\src\cRZCOMDllDirector.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\src\cRZMessage2.cpp" />
@@ -53,6 +54,7 @@
     <ClInclude Include="..\vendor\gzcom-dll\include\cIGZPersistResourceKeyFilter.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cIGZPersistResourceKeyList.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\cRZBaseString.h" />
+    <ClInclude Include="..\vendor\gzcom-dll\include\cRZBaseUnknown.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\GZServPtrs.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\StringResourceKey.h" />
     <ClInclude Include="..\vendor\gzcom-dll\include\StringResourceManager.h" />

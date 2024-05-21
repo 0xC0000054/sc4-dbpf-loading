@@ -28,8 +28,7 @@
 #include "wil/resource.h"
 
 MultiPackedFile::MultiPackedFile()
-	: refCount(0),
-	  segmentID(0),
+	: segmentID(0),
 	  isOpen(false),
 	  initialized(false),
 	  criticalSection{}
@@ -58,44 +57,19 @@ bool MultiPackedFile::QueryInterface(uint32_t riid, void** ppvObj)
 
 		return true;
 	}
-	else if (riid == GZIID_cIGZUnknown)
-	{
-		*ppvObj = static_cast<cIGZUnknown*>(static_cast<cIGZPersistDBSegment*>(this));
-		AddRef();
 
-		return true;
-	}
-
-	*ppvObj = nullptr;
-	return false;
+	return cRZBaseUnkown::QueryInterface(riid, ppvObj);
 }
 
 uint32_t MultiPackedFile::AddRef()
 {
-	uint32_t localRefCount = refCount + 1;
-	refCount = localRefCount;
-
-	return localRefCount;
+	return cRZBaseUnkown::AddRef();
 }
 
 uint32_t MultiPackedFile::Release()
 {
-	uint32_t localRefCount = 0;
-
-	if (refCount > 0)
-	{
-		localRefCount = refCount - 1;
-		refCount = localRefCount;
-
-		if (localRefCount == 0)
-		{
-			delete this;
-		}
-	}
-
-	return localRefCount;
+	return cRZBaseUnkown::Release();
 }
-
 
 bool MultiPackedFile::Init()
 {

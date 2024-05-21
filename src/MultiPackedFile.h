@@ -14,6 +14,7 @@
 #include "cIGZPersistDBSegment.h"
 #include "cIGZPersistDBSegmentMultiPackedFiles.h"
 #include "cRZBaseString.h"
+#include "cRZBaseUnknown.h"
 #include "PersistResourceKeyHash.h"
 #include <unordered_map>
 #include <vector>
@@ -22,7 +23,7 @@
 class cIGZCOM;
 class cIGZPersistResourceManager;
 
-class MultiPackedFile final : public cIGZPersistDBSegment, public cIGZPersistDBSegmentMultiPackedFiles
+class MultiPackedFile final : public cRZBaseUnkown, public cIGZPersistDBSegment, public cIGZPersistDBSegmentMultiPackedFiles
 {
 public:
 
@@ -99,7 +100,6 @@ private:
 		cIGZString const& path,
 		cIGZCOM* const pCOM);
 
-	uint32_t refCount;
 	uint32_t segmentID;
 	cRZBaseString folderPath;
 	bool initialized;

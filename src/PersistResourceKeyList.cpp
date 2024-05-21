@@ -13,7 +13,6 @@
 #include "PersistResourceKeyList.h"
 
 PersistResourceKeyList::PersistResourceKeyList()
-	: refCount(0)
 {
 }
 
@@ -35,42 +34,18 @@ bool PersistResourceKeyList::QueryInterface(uint32_t riid, void** ppvObj)
 
 		return true;
 	}
-	else if (riid == GZIID_cIGZUnknown)
-	{
-		*ppvObj = static_cast<cIGZUnknown*>(this);
-		AddRef();
 
-		return true;
-	}
-
-	*ppvObj = nullptr;
-	return false;
+	return cRZBaseUnkown::QueryInterface(riid, ppvObj);
 }
 
 uint32_t PersistResourceKeyList::AddRef()
 {
-	uint32_t localRefCount = refCount + 1;
-	refCount = localRefCount;
-
-	return localRefCount;
+	return cRZBaseUnkown::AddRef();
 }
 
 uint32_t PersistResourceKeyList::Release()
 {
-	uint32_t localRefCount = 0;
-
-	if (refCount > 0)
-	{
-		localRefCount = refCount - 1;
-		refCount = localRefCount;
-
-		if (localRefCount == 0)
-		{
-			delete this;
-		}
-	}
-
-	return localRefCount;
+	return cRZBaseUnkown::Release();
 }
 
 bool PersistResourceKeyList::Insert(cGZPersistResourceKey const& key)
