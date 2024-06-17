@@ -58,7 +58,7 @@ public:
 
 	uint32_t GetRecordCount(cIGZPersistResourceKeyFilter* filter) override;
 
-	bool GetResourceKeyList(cIGZPersistResourceKeyList* list, cIGZPersistResourceKeyFilter* filter) override;
+	uint32_t GetResourceKeyList(cIGZPersistResourceKeyList* list, cIGZPersistResourceKeyFilter* filter) override;
 	bool GetResourceKeyList(cIGZPersistResourceKeyList& list) override;
 
 	bool TestForRecord(cGZPersistResourceKey const& key) override;

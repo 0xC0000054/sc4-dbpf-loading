@@ -215,22 +215,21 @@ uint32_t MultiPackedFile::GetRecordCount(cIGZPersistResourceKeyFilter* filter)
 	return count;
 }
 
-bool MultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList* list, cIGZPersistResourceKeyFilter* filter)
+uint32_t MultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList* list, cIGZPersistResourceKeyFilter* filter)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
-	bool result = false;
+	uint32_t totalResourceCount = 0;
 
 	if (isOpen && list)
 	{
 		for (cIGZPersistDBSegment* pSegment : segments)
 		{
-			pSegment->GetResourceKeyList(list, filter);
+			totalResourceCount += pSegment->GetResourceKeyList(list, filter);
 		}
-		result = true;
 	}
 
-	return result;
+	return totalResourceCount;
 }
 
 bool MultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList& list)

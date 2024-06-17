@@ -32,7 +32,7 @@ public:
 
 	virtual uint32_t GetRecordCount(cIGZPersistResourceKeyFilter* filter) = 0;
 
-	virtual bool GetResourceKeyList(cIGZPersistResourceKeyList* list, cIGZPersistResourceKeyFilter* filter) = 0;
+	virtual uint32_t GetResourceKeyList(cIGZPersistResourceKeyList* list, cIGZPersistResourceKeyFilter* filter) = 0;
 	virtual bool GetResourceKeyList(cIGZPersistResourceKeyList& list) = 0;
 
 	virtual bool TestForRecord(cGZPersistResourceKey const& key) = 0;
