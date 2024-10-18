@@ -547,6 +547,8 @@ void MultiPackedFile::RemovedResource(cGZPersistResourceKey const& key, cIGZPers
 
 bool MultiPackedFile::Open(const std::vector<cRZBaseString>& datFiles)
 {
+	segments.reserve(datFiles.size());
+
 	cIGZCOM* pCOM = RZGetFramework()->GetCOMObject();
 
 	for (const cRZBaseString& path : datFiles)
