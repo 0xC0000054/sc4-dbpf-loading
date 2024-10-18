@@ -15,8 +15,9 @@
 #include "cIGZPersistDBSegmentMultiPackedFiles.h"
 #include "cRZBaseString.h"
 #include "cRZBaseUnknown.h"
+#include "PersistResourceKeyBoostHash.h"
 #include "PersistResourceKeyHash.h"
-#include <unordered_map>
+#include "boost/unordered/unordered_flat_map.hpp"
 #include <vector>
 #include <Windows.h>
 
@@ -105,7 +106,7 @@ private:
 	bool initialized;
 	bool isOpen;
 	CRITICAL_SECTION criticalSection;
-	std::unordered_map<const cGZPersistResourceKey, cIGZPersistDBSegment*> tgiMap;
+	boost::unordered::unordered_flat_map<const cGZPersistResourceKey, cIGZPersistDBSegment*> tgiMap;
 	std::vector<cIGZPersistDBSegment*> segments;
 };
 

@@ -56,6 +56,7 @@ See [LICENSE.txt](LICENSE.txt) for more information.
 [.NET runtime](https://github.com/dotnet/runtime) The `Stopwatch` class is based on `System.Diagnostics.Stopwatch`, MIT License.    
 [Windows Implementation Library](https://github.com/microsoft/wil) - MIT License    
 [Boost.Algorithm](https://www.boost.org/doc/libs/1_84_0/libs/algorithm/doc/html/index.html) - Boost Software License, Version 1.0.    
+[Boost.Unordered](https://www.boost.org/doc/libs/1_84_0/libs/unordered/doc/html/unordered.html) - Boost Software License, Version 1.0.    
 
 
 # Source Code

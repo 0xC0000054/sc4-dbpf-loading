@@ -203,6 +203,9 @@
     <ClInclude Include="..\vendor\gzcom-dll\include\cRZBaseUnknown.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
+    <ClInclude Include="PersistResourceKeyBoostHash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
