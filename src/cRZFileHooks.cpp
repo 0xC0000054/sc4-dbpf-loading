@@ -13,6 +13,7 @@
 #include "cRZFileHooks.h"
 #include "cIGZString.h"
 #include "DebugUtil.h"
+#include "GZStringConvert.h"
 #include "Logger.h"
 #include "Patcher.h"
 #include <stdexcept>
@@ -52,38 +53,148 @@ namespace
 		return true;
 	}
 
-	DWORD GetRZFileErrorCode()
+	class RZFileWin32Error : public std::exception
 	{
-		DWORD lastError = GetLastError();
-
-		switch (lastError)
+	public:
+		RZFileWin32Error(DWORD error) : lastError(error)
 		{
-		case ERROR_ACCESS_DENIED:
-			return 0x20000002;
-		case ERROR_ALREADY_EXISTS:
-			return 0x20000001;
-		default:
+		}
+
+		DWORD GetLastError() const
+		{
 			return lastError;
 		}
+
+	private:
+		DWORD lastError;
+	};
+
+	std::wstring AddExtendedPathPrefix(const std::wstring& path)
+	{
+		const std::wstring_view longPathPrefix = L"\\\\?\\";
+		const std::wstring_view longUncPathPrefix = L"\\\\?\\UNC\\";
+
+		if (path.starts_with(longPathPrefix))
+		{
+			return path;
+		}
+		else if (path.starts_with(L"\\\\"))
+		{
+			// Network path
+
+			std::wstring result(longUncPathPrefix);
+			result.append(path.substr(2));
+
+			return result;
+		}
+		else
+		{
+			std::wstring result(longPathPrefix);
+			result.append(path);
+
+			return result;
+		}
+	}
+
+	std::wstring GetExtendedPath(const std::wstring& path)
+	{
+		std::wstring normalizedPath;
+		const std::wstring pathWithPrefix = AddExtendedPathPrefix(path);
+
+		// With the extended path format, we have to make the OS normalize the path.
+		// It will not do so when opening the file.
+
+		DWORD normalizedPathLengthWithNull = GetFullPathNameW(pathWithPrefix.c_str(), 0, nullptr, nullptr);
+
+		if (normalizedPathLengthWithNull == 0)
+		{
+			throw RZFileWin32Error(GetLastError());
+		}
+
+		normalizedPath.resize(normalizedPathLengthWithNull);
+
+		DWORD normalizedPathLength2 = GetFullPathNameW(
+			pathWithPrefix.c_str(),
+			normalizedPathLengthWithNull,
+			normalizedPath.data(),
+			nullptr);
+
+		if (normalizedPathLength2 == 0)
+		{
+			throw RZFileWin32Error(GetLastError());
+		}
+
+		// Strip the null terminator.
+		normalizedPath.resize(normalizedPathLength2);
+
+		return normalizedPath;
+	}
+
+	std::wstring GetUtf16FilePath(const cIGZString& utf8Path)
+	{
+		std::wstring utf16Path = GZStringConvert::ToUtf16(utf8Path);
+
+		if (utf16Path.size() >= MAX_PATH)
+		{
+			// If the path is longer than MAX_PATH (260 characters), then we need
+			// to convert it to the Windows extended path format.
+			utf16Path = GetExtendedPath(utf16Path);
+		}
+
+		return utf16Path;
 	}
 
 	class cRZString
 	{
+	public:
+		const cIGZString* AsIGZString() const
+		{
+			return reinterpret_cast<const cIGZString*>(this);
+		}
+	private:
 		void* vtable;
 		intptr_t stdStringFields[3];
 		uint32_t refCount;
 	};
+
+	enum class RZFileAccessMode : uint32_t
+	{
+		None = 0,
+		Read = 1,
+		Write = 2,
+		ReadWrite = Read | Write,
+	};
+	DEFINE_ENUM_FLAG_OPERATORS(RZFileAccessMode);
+
+	enum class RZFileCreationMode : uint32_t
+	{
+		CreateNew = 0,
+		CreateAlways = 1,
+		OpenExisting = 2,
+		OpenAlways = 3,
+		TruncateExisting = 4,
+	};
+	DEFINE_ENUM_FLAG_OPERATORS(RZFileCreationMode);
+
+	enum class RZFileShareMode : uint32_t
+	{
+		None = 0,
+		Read = 1,
+		ReadWrite = 2,
+	};
+	DEFINE_ENUM_FLAG_OPERATORS(RZFileShareMode);
+
 
 	class cRZFileProxy
 	{
 	public:
 		void* vtable;
 		cRZString nameRZStr;
-		int isOpen;
+		bool isOpen;
 		HANDLE fileHandle;
-		uint32_t accessMode;
-		uint32_t creationMode;
-		uint32_t shareMode;
+		RZFileAccessMode accessMode;
+		RZFileCreationMode creationMode;
+		RZFileShareMode shareMode;
 		intptr_t unknown2;
 		uint32_t fileIOError;
 		intptr_t unknown3[5];
@@ -109,11 +220,139 @@ namespace
 	static_assert(offsetof(cRZFileProxy, readBufferLength) == 0x64);
 	static_assert(offsetof(cRZFileProxy, writeBufferOffset) == 0x78);
 
+	void SetRZFileErrorCode(cRZFileProxy* pThis, DWORD lastError)
+	{
+		switch (lastError)
+		{
+		case ERROR_ACCESS_DENIED:
+			pThis->fileIOError = 0x20000002;
+			break;
+		case ERROR_ALREADY_EXISTS:
+			pThis->fileIOError = 0x20000001;
+			break;
+		default:
+			pThis->fileIOError = lastError;
+			break;
+		}
+	}
+
+	bool __fastcall HookedOpen(
+		cRZFileProxy* pThis,
+		void* edxUnused,
+		RZFileAccessMode accessMode,
+		RZFileCreationMode creationMode,
+		RZFileShareMode shareMode)
+	{
+		bool result = false;
+
+		if (pThis->isOpen)
+		{
+			result = true;
+		}
+		else
+		{
+			const cIGZString* utf8FilePath = pThis->nameRZStr.AsIGZString();
+
+			if (utf8FilePath->Strlen() > 0)
+			{
+				try
+				{
+					const std::wstring utf16Path = GetUtf16FilePath(*utf8FilePath);
+
+					DWORD dwDesiredAccess = 0;
+					DWORD dwShareMode = 0;
+					DWORD dwCreationDisposition = 0;
+
+					switch (accessMode)
+					{
+					case RZFileAccessMode::Read:
+						dwDesiredAccess = GENERIC_READ;
+						break;
+					case RZFileAccessMode::Write:
+						dwDesiredAccess = GENERIC_WRITE;
+						break;
+					case RZFileAccessMode::ReadWrite:
+						dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+						break;
+					}
+
+					switch (creationMode)
+					{
+					case RZFileCreationMode::CreateNew:
+						dwCreationDisposition = CREATE_NEW;
+						break;
+					case RZFileCreationMode::CreateAlways:
+						dwCreationDisposition = CREATE_ALWAYS;
+						break;
+					case RZFileCreationMode::OpenExisting:
+						dwCreationDisposition = OPEN_EXISTING;
+						break;
+					case RZFileCreationMode::OpenAlways:
+						dwCreationDisposition = OPEN_ALWAYS;
+						break;
+					case RZFileCreationMode::TruncateExisting:
+						dwCreationDisposition = TRUNCATE_EXISTING;
+						break;
+					}
+
+					switch (shareMode)
+					{
+					case RZFileShareMode::Read:
+						dwShareMode = FILE_SHARE_READ;
+						break;
+					case RZFileShareMode::ReadWrite:
+						dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
+						break;
+					}
+
+					HANDLE hFile = CreateFileW(
+						utf16Path.c_str(),
+						dwDesiredAccess,
+						dwShareMode,
+						nullptr,
+						dwCreationDisposition,
+						0,
+						nullptr);
+
+					if (hFile == INVALID_HANDLE_VALUE)
+					{
+						throw RZFileWin32Error(GetLastError());
+					}
+
+					pThis->fileHandle = hFile;
+					pThis->isOpen = 1;
+					pThis->accessMode = accessMode;
+					pThis->creationMode = creationMode;
+					pThis->shareMode = shareMode;
+					pThis->readBufferOffset = 0;
+					pThis->readBufferLength = 0;
+					pThis->writeBufferOffset = 0;
+					pThis->writeBufferLength = 0;
+
+					DWORD currentFilePosition = SetFilePointer(hFile, 0, 0, FILE_CURRENT);
+					pThis->currentFilePosition = currentFilePosition;
+					pThis->position = currentFilePosition;
+					result = true;
+				}
+				catch (const std::bad_alloc&)
+				{
+					SetRZFileErrorCode(pThis, ERROR_OUTOFMEMORY);
+				}
+				catch (const RZFileWin32Error& e)
+				{
+					SetRZFileErrorCode(pThis, e.GetLastError());
+				}
+			}
+		}
+
+		return result;
+	}
+
 	typedef bool(__thiscall* pfn_cRZFile_ReadWithCount)(cRZFileProxy* pThis, void* outBuffer, uint32_t& byteCount);
 
 	static pfn_cRZFile_ReadWithCount RealReadWithCount = nullptr;
 
-	static bool __fastcall HookedReadWithCount(cRZFileProxy* pThis, void* edxUnused, void* outBuffer, uint32_t& byteCount)
+	bool __fastcall HookedReadWithCount(cRZFileProxy* pThis, void* edxUnused, void* outBuffer, uint32_t& byteCount)
 	{
 		bool result = false;
 #if 0
@@ -162,7 +401,7 @@ namespace
 					}
 					else
 					{
-						pThis->fileIOError = GetRZFileErrorCode();
+						SetRZFileErrorCode(pThis, GetLastError());
 						pThis->position = SetFilePointer(pThis->fileHandle, 0, nullptr, FILE_CURRENT);
 					}
 					pThis->currentFilePosition = pThis->position;
@@ -175,6 +414,11 @@ namespace
 		}
 
 		return result;
+	}
+
+	void InstallOpenHook()
+	{
+		Patcher::InstallJumpTableHook(0xABFEDC, &HookedOpen);
 	}
 
 	void InstallReadWithCountHook()
@@ -197,6 +441,7 @@ void cRZFileHooks::Install()
 
 	try
 	{
+		InstallOpenHook();
 		InstallReadWithCountHook();
 
 		logger.WriteLine(LogLevel::Info, "Installed the cRZFile hooks.");

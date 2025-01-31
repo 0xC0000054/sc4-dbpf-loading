@@ -73,3 +73,8 @@ void Patcher::InstallCallHook(uintptr_t targetAddress, void* pfnFunc)
 	*((uint8_t*)targetAddress) = 0xE8;
 	*((uintptr_t*)(targetAddress + 1)) = ((uintptr_t)pfnFunc) - targetAddress - 5;
 }
+
+void Patcher::InstallJumpTableHook(uintptr_t targetAddress, void* pfnFunc)
+{
+	OverwriteMemory(targetAddress, reinterpret_cast<uintptr_t>(pfnFunc));
+}
