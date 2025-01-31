@@ -113,19 +113,19 @@ namespace
 
 		normalizedPath.resize(normalizedPathLengthWithNull);
 
-		DWORD normalizedPathLength2 = GetFullPathNameW(
+		DWORD normalizedPathLength = GetFullPathNameW(
 			pathWithPrefix.c_str(),
 			normalizedPathLengthWithNull,
 			normalizedPath.data(),
 			nullptr);
 
-		if (normalizedPathLength2 == 0)
+		if (normalizedPathLength == 0)
 		{
 			throw RZFileWin32Error(GetLastError());
 		}
 
 		// Strip the null terminator.
-		normalizedPath.resize(normalizedPathLength2);
+		normalizedPath.resize(normalizedPathLength);
 
 		return normalizedPath;
 	}
