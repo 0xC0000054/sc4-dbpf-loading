@@ -68,9 +68,7 @@ std::wstring PathUtil::Combine(const std::wstring& root, const std::wstring_view
 	{
 		std::wstring result(root);
 
-		const wchar_t lastChar = root[root.size() - 1];
-
-		if (lastChar != L'\\' && lastChar != L'/')
+		if (!IsDirectorySeparator(root[root.size() - 1]))
 		{
 			result.append(1, L'\\');
 		}
@@ -81,6 +79,46 @@ std::wstring PathUtil::Combine(const std::wstring& root, const std::wstring_view
 	}
 
 	return root;
+}
+
+std::wstring_view PathUtil::GetExtension(const std::wstring_view& path)
+{
+	std::wstring_view extension;
+
+	if (path.size() > 0)
+	{
+		const size_t length = path.size();
+		const size_t lastCharacterIndex = length - 1;
+
+		// This loop will exclude file names that start with a period, but that
+		// is the desired behavior.
+
+		for (size_t i = lastCharacterIndex; i != 0; i--)
+		{
+			const wchar_t c = path[i];
+
+			if (c == L'.')
+			{
+				// Treat a file name ending in a period as having no file extension.
+				if (i != lastCharacterIndex)
+				{
+					extension = path.substr(i, length - i);
+				}
+				break;
+			}
+			else if (IsDirectorySeparator(c))
+			{
+				break;
+			}
+		}
+	}
+
+	return extension;
+}
+
+bool PathUtil::IsDirectorySeparator(wchar_t value)
+{
+	return value == L'\\' || value == L'/';
 }
 
 bool PathUtil::MustAddExtendedPathPrefix(const std::wstring& path)

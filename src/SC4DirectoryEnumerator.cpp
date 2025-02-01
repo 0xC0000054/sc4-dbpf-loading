@@ -56,12 +56,10 @@ namespace
 	{
 		bool result = false;
 
-		size_t periodIndex = fileName.find_last_of(L'.');
+		const std::wstring_view extension = PathUtil::GetExtension(fileName);
 
-		if (periodIndex != std::wstring::npos)
+		if (!extension.empty())
 		{
-			std::wstring_view extension = fileName.substr(periodIndex);
-
 			result = boost::istarts_with(extension, ".SC4"sv);
 		}
 		else
