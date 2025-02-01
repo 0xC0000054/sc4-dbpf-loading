@@ -16,6 +16,7 @@
 #include "GZStringConvert.h"
 #include "Logger.h"
 #include "Patcher.h"
+#include "PathUtil.h"
 #include <stdexcept>
 
 #define NOMINMAX
@@ -53,92 +54,14 @@ namespace
 		return true;
 	}
 
-	class RZFileWin32Error : public std::exception
-	{
-	public:
-		RZFileWin32Error(DWORD error) : lastError(error)
-		{
-		}
-
-		DWORD GetLastError() const
-		{
-			return lastError;
-		}
-
-	private:
-		DWORD lastError;
-	};
-
-	std::wstring AddExtendedPathPrefix(const std::wstring& path)
-	{
-		const std::wstring_view longPathPrefix = L"\\\\?\\";
-		const std::wstring_view longUncPathPrefix = L"\\\\?\\UNC\\";
-
-		if (path.starts_with(longPathPrefix))
-		{
-			return path;
-		}
-		else if (path.starts_with(L"\\\\"))
-		{
-			// Network path
-
-			std::wstring result(longUncPathPrefix);
-			result.append(path.substr(2));
-
-			return result;
-		}
-		else
-		{
-			std::wstring result(longPathPrefix);
-			result.append(path);
-
-			return result;
-		}
-	}
-
-	std::wstring GetExtendedPath(const std::wstring& path)
-	{
-		std::wstring normalizedPath;
-		const std::wstring pathWithPrefix = AddExtendedPathPrefix(path);
-
-		// With the extended path format, we have to make the OS normalize the path.
-		// It will not do so when opening the file.
-
-		DWORD normalizedPathLengthWithNull = GetFullPathNameW(pathWithPrefix.c_str(), 0, nullptr, nullptr);
-
-		if (normalizedPathLengthWithNull == 0)
-		{
-			throw RZFileWin32Error(GetLastError());
-		}
-
-		normalizedPath.resize(normalizedPathLengthWithNull);
-
-		DWORD normalizedPathLength = GetFullPathNameW(
-			pathWithPrefix.c_str(),
-			normalizedPathLengthWithNull,
-			normalizedPath.data(),
-			nullptr);
-
-		if (normalizedPathLength == 0)
-		{
-			throw RZFileWin32Error(GetLastError());
-		}
-
-		// Strip the null terminator.
-		normalizedPath.resize(normalizedPathLength);
-
-		return normalizedPath;
-	}
-
 	std::wstring GetUtf16FilePath(const cIGZString& utf8Path)
 	{
 		std::wstring utf16Path = GZStringConvert::ToUtf16(utf8Path);
 
-		if (utf16Path.size() >= MAX_PATH)
+		if (PathUtil::MustAddExtendedPathPrefix(utf16Path))
 		{
-			// If the path is longer than MAX_PATH (260 characters), then we need
-			// to convert it to the Windows extended path format.
-			utf16Path = GetExtendedPath(utf16Path);
+			// The extended path must be normalized because the OS won't do it for us.
+			utf16Path = PathUtil::Normalize(PathUtil::AddExtendedPathPrefix(utf16Path));
 		}
 
 		return utf16Path;
@@ -316,31 +239,33 @@ namespace
 
 					if (hFile == INVALID_HANDLE_VALUE)
 					{
-						throw RZFileWin32Error(GetLastError());
+						SetRZFileErrorCode(pThis, GetLastError());
 					}
+					else
+					{
+						pThis->fileHandle = hFile;
+						pThis->isOpen = 1;
+						pThis->accessMode = accessMode;
+						pThis->creationMode = creationMode;
+						pThis->shareMode = shareMode;
+						pThis->readBufferOffset = 0;
+						pThis->readBufferLength = 0;
+						pThis->writeBufferOffset = 0;
+						pThis->writeBufferLength = 0;
 
-					pThis->fileHandle = hFile;
-					pThis->isOpen = 1;
-					pThis->accessMode = accessMode;
-					pThis->creationMode = creationMode;
-					pThis->shareMode = shareMode;
-					pThis->readBufferOffset = 0;
-					pThis->readBufferLength = 0;
-					pThis->writeBufferOffset = 0;
-					pThis->writeBufferLength = 0;
-
-					DWORD currentFilePosition = SetFilePointer(hFile, 0, 0, FILE_CURRENT);
-					pThis->currentFilePosition = currentFilePosition;
-					pThis->position = currentFilePosition;
-					result = true;
+						DWORD currentFilePosition = SetFilePointer(hFile, 0, 0, FILE_CURRENT);
+						pThis->currentFilePosition = currentFilePosition;
+						pThis->position = currentFilePosition;
+						result = true;
+					}
 				}
 				catch (const std::bad_alloc&)
 				{
 					SetRZFileErrorCode(pThis, ERROR_OUTOFMEMORY);
 				}
-				catch (const RZFileWin32Error& e)
+				catch (const std::exception&)
 				{
-					SetRZFileErrorCode(pThis, e.GetLastError());
+					SetRZFileErrorCode(pThis, ERROR_FILENAME_EXCED_RANGE);
 				}
 			}
 		}

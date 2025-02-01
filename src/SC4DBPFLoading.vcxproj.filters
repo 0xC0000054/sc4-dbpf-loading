@@ -123,6 +123,9 @@
     <ClCompile Include="..\vendor\gzcom-dll\src\cRZBaseUnknown.cpp">
       <Filter>Source Files\GZCOM</Filter>
     </ClCompile>
+    <ClCompile Include="PathUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -204,6 +207,9 @@
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
     <ClInclude Include="PersistResourceKeyBoostHash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PathUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

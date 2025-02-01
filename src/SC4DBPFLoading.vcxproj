@@ -38,6 +38,7 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="MultiPackedFile.cpp" />
     <ClCompile Include="Patcher.cpp" />
+    <ClCompile Include="PathUtil.cpp" />
     <ClCompile Include="PersistResourceKeyList.cpp" />
     <ClCompile Include="SC4DirectoryEnumerator.cpp" />
     <ClCompile Include="LooseSC4PluginScanPatch.cpp" />
@@ -64,6 +65,7 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="MultiPackedFile.h" />
     <ClInclude Include="Patcher.h" />
+    <ClInclude Include="PathUtil.h" />
     <ClInclude Include="PersistResourceKeyBoostHash.h" />
     <ClInclude Include="PersistResourceKeyHash.h" />
     <ClInclude Include="PersistResourceKeyList.h" />

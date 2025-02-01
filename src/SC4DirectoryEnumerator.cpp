@@ -12,8 +12,8 @@
 
 #include "SC4DirectoryEnumerator.h"
 #include "GZStringConvert.h"
+#include "PathUtil.h"
 #include "StringViewUtil.h"
-#include <filesystem>
 #include <stdexcept>
 #include <Windows.h>
 #include "wil/resource.h"
@@ -26,19 +26,11 @@ using namespace std::string_view_literals;
 
 namespace
 {
-	std::filesystem::path AppendFileName(const std::filesystem::path& root, const std::wstring_view& fileName)
+	cRZBaseString CreateUtf8FilePath(const std::wstring& root, const std::wstring_view& fileName)
 	{
-		std::filesystem::path newPath = root;
-		newPath /= fileName;
+		const std::wstring nativePath = PathUtil::Combine(PathUtil::RemoveExtendedPathPrefix(root), fileName);
 
-		return newPath;
-	}
-
-	cRZBaseString CreateUtf8FilePath(const std::filesystem::path& root, const std::wstring_view& fileName)
-	{
-		const std::filesystem::path nativePath = AppendFileName(root, fileName);
-
-		return GZStringConvert::FromFileSystemPath(nativePath);
+		return GZStringConvert::FromUtf16(nativePath);
 	}
 
 	void ThrowExceptionForWin32Error(const char* win32MethodName, DWORD error)
@@ -88,8 +80,33 @@ namespace
 
 	typedef bool(*FileNamePredicate)(const std::wstring_view& fileName);
 
+	std::wstring GetAllFilesSearchPattern(const std::wstring& directory, bool topLevelDirectory)
+	{
+		std::wstring searchDirectory;
+
+		if (PathUtil::MustAddExtendedPathPrefix(directory))
+		{
+			searchDirectory = PathUtil::AddExtendedPathPrefix(directory);
+
+			if (topLevelDirectory)
+			{
+				// The extended path must be normalized because the OS won't do it for us.
+				// We only do this for the top-level directory, because if it is normalized
+				// any sub directories will also be valid.
+				searchDirectory = PathUtil::Normalize(searchDirectory);
+			}
+		}
+		else
+		{
+			searchDirectory = directory;
+		}
+
+		return PathUtil::Combine(searchDirectory, L"*"sv);
+	}
+
 	void NativeScanDirectoryRecursive(
 		const std::filesystem::path& directory,
+		bool topLevelDirectory,
 		std::vector<cRZBaseString>& files,
 		FileNamePredicate Predicate)
 	{
@@ -97,7 +114,7 @@ namespace
 
 		WIN32_FIND_DATAW findData{};
 
-		const std::filesystem::path searchPattern = AppendFileName(directory, L"*"sv);
+		const std::filesystem::path searchPattern = GetAllFilesSearchPattern(directory, topLevelDirectory);
 
 		wil::unique_hfind findHandle(FindFirstFileExW(
 			searchPattern.c_str(),
@@ -115,7 +132,7 @@ namespace
 				{
 					if (!wil::path_is_dot_or_dotdot(findData.cFileName))
 					{
-						subFolders.push_back(AppendFileName(directory, std::wstring_view(findData.cFileName)));
+						subFolders.push_back(PathUtil::Combine(directory, std::wstring_view(findData.cFileName)));
 					}
 				}
 				else
@@ -149,17 +166,17 @@ namespace
 		// Recursively search the sub-directories.
 		for (const auto& path : subFolders)
 		{
-			NativeScanDirectoryRecursive(path, files, Predicate);
+			NativeScanDirectoryRecursive(path, false, files, Predicate);
 		}
 	}
 }
 
 void SC4DirectoryEnumerator::ScanDirectoryForDatFilesRecursive(const cIGZString& root, std::vector<cRZBaseString>& output)
 {
-	NativeScanDirectoryRecursive(GZStringConvert::ToFileSystemPath(root), output, DatFilesPredicate);
+	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, output, DatFilesPredicate);
 }
 
 void SC4DirectoryEnumerator::ScanDirectoryForLooseSC4FilesRecursive(const cIGZString& root, std::vector<cRZBaseString>& output)
 {
-	NativeScanDirectoryRecursive(GZStringConvert::ToFileSystemPath(root), output, SC4FilesPredicate);
+	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, output, SC4FilesPredicate);
 }
