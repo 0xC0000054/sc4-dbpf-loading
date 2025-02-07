@@ -97,7 +97,6 @@ namespace
 		OpenAlways = 3,
 		TruncateExisting = 4,
 	};
-	DEFINE_ENUM_FLAG_OPERATORS(RZFileCreationMode);
 
 	enum class RZFileShareMode : uint32_t
 	{
@@ -105,7 +104,6 @@ namespace
 		Read = 1,
 		ReadWrite = 2,
 	};
-	DEFINE_ENUM_FLAG_OPERATORS(RZFileShareMode);
 
 
 	class cRZFileProxy
