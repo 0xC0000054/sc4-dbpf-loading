@@ -54,6 +54,7 @@ See [LICENSE.txt](LICENSE.txt) for more information.
 [EASTL](https://github.com/electronicarts/EASTL) Located in the vendor folder, BSD 3-Clause License.    
 [SC4Fix](https://github.com/nsgomez/sc4fix) - MIT License.     
 [.NET runtime](https://github.com/dotnet/runtime) The `Stopwatch` class is based on `System.Diagnostics.Stopwatch`, MIT License.    
+[Detours](https://github.com/microsoft/Detours) - MIT License    
 [Windows Implementation Library](https://github.com/microsoft/wil) - MIT License    
 [Boost.Algorithm](https://www.boost.org/doc/libs/1_84_0/libs/algorithm/doc/html/index.html) - Boost Software License, Version 1.0.    
 [Boost.Unordered](https://www.boost.org/doc/libs/1_84_0/libs/unordered/doc/html/unordered.html) - Boost Software License, Version 1.0.    
