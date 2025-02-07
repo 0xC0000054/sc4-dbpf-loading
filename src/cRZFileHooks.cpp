@@ -105,7 +105,6 @@ namespace
 		ReadWrite = 2,
 	};
 
-
 	class cRZFileProxy
 	{
 	public:
@@ -156,6 +155,13 @@ namespace
 			break;
 		}
 	}
+
+	typedef bool(__thiscall *pfn_cRZFile_Open)(
+		cRZFileProxy* pThis,
+		RZFileAccessMode accessMode,
+		RZFileCreationMode creationMode,
+		RZFileShareMode shareMode);
+	static pfn_cRZFile_Open RealOpen = nullptr;
 
 	bool __fastcall HookedOpen(
 		cRZFileProxy* pThis,
@@ -338,23 +344,6 @@ namespace
 
 		return result;
 	}
-
-	void InstallOpenHook()
-	{
-		Patcher::InstallJumpTableHook(0xABFEDC, &HookedOpen);
-	}
-
-	void InstallReadWithCountHook()
-	{
-		RealReadWithCount = reinterpret_cast<pfn_cRZFile_ReadWithCount>(0x9192A9);
-
-		DetourRestoreAfterWith();
-
-		DetourTransactionBegin();
-		DetourUpdateThread(GetCurrentThread());
-		DetourAttach(&(PVOID&)RealReadWithCount, HookedReadWithCount);
-		DetourTransactionCommit();
-	}
 }
 
 
@@ -364,10 +353,28 @@ void cRZFileHooks::Install()
 
 	try
 	{
-		InstallOpenHook();
-		InstallReadWithCountHook();
+		RealOpen = reinterpret_cast<pfn_cRZFile_Open>(0x919B00);
+		RealReadWithCount = reinterpret_cast<pfn_cRZFile_ReadWithCount>(0x9192A9);
 
-		logger.WriteLine(LogLevel::Info, "Installed the cRZFile hooks.");
+		DetourRestoreAfterWith();
+
+		DetourTransactionBegin();
+		DetourUpdateThread(GetCurrentThread());
+		DetourAttach(&(PVOID&)RealOpen, HookedOpen);
+		DetourAttach(&(PVOID&)RealReadWithCount, HookedReadWithCount);
+		LONG error = DetourTransactionCommit();
+
+		if (error == NO_ERROR)
+		{
+			logger.WriteLine(LogLevel::Info, "Installed the cRZFile hooks.");
+		}
+		else
+		{
+			logger.WriteLineFormatted(
+				LogLevel::Error,
+				"Failed to install the cRZFile hooks, error code=%d",
+				error);
+		}
 	}
 	catch (const std::exception& e)
 	{
