@@ -78,7 +78,7 @@ namespace
 
 	typedef bool(*FileNamePredicate)(const std::wstring_view& fileName);
 
-	std::wstring GetAllFilesSearchPattern(const std::wstring& directory, bool topLevelDirectory)
+	std::wstring GetAllFilesSearchPattern(const std::wstring& directory, bool normalizeExtendedPath)
 	{
 		std::wstring searchDirectory;
 
@@ -86,7 +86,7 @@ namespace
 		{
 			searchDirectory = PathUtil::AddExtendedPathPrefix(directory);
 
-			if (topLevelDirectory)
+			if (normalizeExtendedPath)
 			{
 				// The extended path must be normalized because the OS won't do it for us.
 				// We only do this for the top-level directory, because if it is normalized
@@ -104,7 +104,7 @@ namespace
 
 	void NativeScanDirectoryRecursive(
 		const std::filesystem::path& directory,
-		bool topLevelDirectory,
+		bool normalizeExtendedPath,
 		std::vector<cRZBaseString>& files,
 		FileNamePredicate Predicate)
 	{
@@ -112,7 +112,7 @@ namespace
 
 		WIN32_FIND_DATAW findData{};
 
-		const std::filesystem::path searchPattern = GetAllFilesSearchPattern(directory, topLevelDirectory);
+		const std::filesystem::path searchPattern = GetAllFilesSearchPattern(directory, normalizeExtendedPath);
 
 		wil::unique_hfind findHandle(FindFirstFileExW(
 			searchPattern.c_str(),
