@@ -459,7 +459,7 @@ int32_t MultiPackedFile::ConsolidateDatabaseRecords(cIGZPersistDBSegment* target
 			int32_t copiedRecordCount = pPackedFile->CopyDatabaseRecords(target, filter, false, true);
 			totalCopiedRecords += copiedRecordCount;
 
-			pSegment->Release();
+			pPackedFile->Release();
 		}
 	}
 

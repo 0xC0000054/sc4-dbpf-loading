@@ -464,7 +464,7 @@ int32_t LooseSC4MultiPackedFile::ConsolidateDatabaseRecords(cIGZPersistDBSegment
 			int32_t copiedRecordCount = pPackedFile->CopyDatabaseRecords(target, filter, false, true);
 			totalCopiedRecords += copiedRecordCount;
 
-			pSegment->Release();
+			pPackedFile->Release();
 		}
 	}
 
