@@ -15,7 +15,7 @@
 #include "DebugUtil.h"
 #include "Logger.h"
 #include "LooseSC4PluginScanPatch.h"
-#include "MultiPackedFile.h"
+#include "DatMultiPackedFile.h"
 #include "Patcher.h"
 #include "SC4VersionDetection.h"
 #include "Stopwatch.h"
@@ -309,7 +309,7 @@ namespace
 
 static cIGZUnknown* CreateMultiPackedFile()
 {
-	return static_cast<cIGZPersistDBSegment*>(new MultiPackedFile());
+	return static_cast<cIGZPersistDBSegment*>(new DatMultiPackedFile());
 }
 
 class DBPFLoadingDllDirector : public cRZCOMDllDirector

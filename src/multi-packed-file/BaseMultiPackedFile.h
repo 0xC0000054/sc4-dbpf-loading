@@ -24,18 +24,23 @@
 class cIGZCOM;
 class cIGZPersistResourceManager;
 
-class MultiPackedFile final : public cRZBaseUnkown, public cIGZPersistDBSegment, public cIGZPersistDBSegmentMultiPackedFiles
+class BaseMultiPackedFile : public cRZBaseUnkown, public cIGZPersistDBSegment, public cIGZPersistDBSegmentMultiPackedFiles
 {
+protected:
+	/**
+	 * @brief The constructor derived classed must call.
+	 * @param enumerateSegmentsBackToFront true if the game see the segments in last in first out order; otherwise, false
+	 * to use first in first out order.
+	 * cGZPersistResourceManager uses last in first out for its file list.
+	 * cGZPersistDBSegmentMultiPackedFiles uses first in first out.
+	 */
+	BaseMultiPackedFile(bool enumerateSegmentsBackToFront);
+
 public:
-
-	MultiPackedFile();
-
-	~MultiPackedFile();
+	~BaseMultiPackedFile();
 
 	bool QueryInterface(uint32_t riid, void** ppvObj) override;
-
 	uint32_t AddRef() override;
-
 	uint32_t Release() override;
 
 	// cIGZPersistDBSegment
@@ -93,16 +98,17 @@ public:
 	void AddedResource(cGZPersistResourceKey const&, cIGZPersistDBSegment*) override;
 	void RemovedResource(cGZPersistResourceKey const&, cIGZPersistDBSegment*) override;
 
+protected:
+	virtual std::vector<cRZBaseString> GetDBPFFiles(const cIGZString& folderPath) const = 0;
+
 private:
-
-	bool Open(const std::vector<cRZBaseString>& datFiles);
-
 	bool SetupGZPersistDBSegment(
 		cIGZString const& path,
 		cIGZCOM* const pCOM);
 
 	uint32_t segmentID;
 	cRZBaseString folderPath;
+	bool enumerateSegmentsBackToFront;
 	bool initialized;
 	bool isOpen;
 	CRITICAL_SECTION criticalSection;

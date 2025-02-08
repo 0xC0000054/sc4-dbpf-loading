@@ -10,7 +10,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "LooseSC4PluginMultiPackedFile.h"
+#include "BaseMultiPackedFile.h"
 #include "PersistResourceKeyList.h"
 #include "Logger.h"
 #include "SC4DirectoryEnumerator.h"
@@ -27,21 +27,22 @@
 #include "GZServPtrs.h"
 #include "wil/resource.h"
 
-LooseSC4MultiPackedFile::LooseSC4MultiPackedFile()
+BaseMultiPackedFile::BaseMultiPackedFile(bool enumerateSegmentsBackToFront)
 	: segmentID(0),
 	  isOpen(false),
 	  initialized(false),
+	  enumerateSegmentsBackToFront(enumerateSegmentsBackToFront),
 	  criticalSection{}
 {
 	InitializeCriticalSectionEx(&criticalSection, 0, 0);
 }
 
-LooseSC4MultiPackedFile::~LooseSC4MultiPackedFile()
+BaseMultiPackedFile::~BaseMultiPackedFile()
 {
 	DeleteCriticalSection(&criticalSection);
 }
 
-bool LooseSC4MultiPackedFile::QueryInterface(uint32_t riid, void** ppvObj)
+bool BaseMultiPackedFile::QueryInterface(uint32_t riid, void** ppvObj)
 {
 	if (riid == GZIID_cIGZPersistDBSegmentMultiPackedFiles)
 	{
@@ -61,17 +62,17 @@ bool LooseSC4MultiPackedFile::QueryInterface(uint32_t riid, void** ppvObj)
 	return cRZBaseUnkown::QueryInterface(riid, ppvObj);
 }
 
-uint32_t LooseSC4MultiPackedFile::AddRef()
+uint32_t BaseMultiPackedFile::AddRef()
 {
 	return cRZBaseUnkown::AddRef();
 }
 
-uint32_t LooseSC4MultiPackedFile::Release()
+uint32_t BaseMultiPackedFile::Release()
 {
 	return cRZBaseUnkown::Release();
 }
 
-bool LooseSC4MultiPackedFile::Init()
+bool BaseMultiPackedFile::Init()
 {
 	if (!initialized)
 	{
@@ -81,7 +82,7 @@ bool LooseSC4MultiPackedFile::Init()
 	return true;
 }
 
-bool LooseSC4MultiPackedFile::Shutdown()
+bool BaseMultiPackedFile::Shutdown()
 {
 	if (initialized)
 	{
@@ -91,7 +92,7 @@ bool LooseSC4MultiPackedFile::Shutdown()
 	return true;
 }
 
-bool LooseSC4MultiPackedFile::Open(bool openRead, bool openWrite)
+bool BaseMultiPackedFile::Open(bool openRead, bool openWrite)
 {
 	bool result = false;
 
@@ -100,11 +101,28 @@ bool LooseSC4MultiPackedFile::Open(bool openRead, bool openWrite)
 	{
 		try
 		{
-			std::vector<cRZBaseString> files;
+			std::vector<cRZBaseString> files = GetDBPFFiles(folderPath);
 
-			SC4DirectoryEnumerator::ScanDirectoryForLooseSC4FilesRecursive(folderPath, files);
+			if (!files.empty())
+			{
+				segments.reserve(files.size());
 
-			result = Open(files);
+				cIGZCOM* pCOM = RZGetFramework()->GetCOMObject();
+
+				for (const cRZBaseString& path : files)
+				{
+					if (!SetupGZPersistDBSegment(path, pCOM))
+					{
+						Logger::GetInstance().WriteLineFormatted(
+							LogLevel::Error,
+							"Failed to load: %s",
+							path.ToChar());
+					}
+				}
+
+				isOpen = segments.size() > 0;
+				result = isOpen;
+			}
 		}
 		catch (const std::exception& e)
 		{
@@ -116,12 +134,12 @@ bool LooseSC4MultiPackedFile::Open(bool openRead, bool openWrite)
 	return result;
 }
 
-bool LooseSC4MultiPackedFile::IsOpen() const
+bool BaseMultiPackedFile::IsOpen() const
 {
 	return isOpen;
 }
 
-bool LooseSC4MultiPackedFile::Close()
+bool BaseMultiPackedFile::Close()
 {
 	if (isOpen)
 	{
@@ -143,18 +161,18 @@ bool LooseSC4MultiPackedFile::Close()
 	return false;
 }
 
-bool LooseSC4MultiPackedFile::Flush()
+bool BaseMultiPackedFile::Flush()
 {
 	// cIGZPersistMultiPackedFiles are always read only.
 	return true;
 }
 
-void LooseSC4MultiPackedFile::GetPath(cIGZString& path) const
+void BaseMultiPackedFile::GetPath(cIGZString& path) const
 {
 	path.Copy(folderPath);
 }
 
-bool LooseSC4MultiPackedFile::SetPath(cIGZString const& path)
+bool BaseMultiPackedFile::SetPath(cIGZString const& path)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -163,24 +181,24 @@ bool LooseSC4MultiPackedFile::SetPath(cIGZString const& path)
 	return true;
 }
 
-bool LooseSC4MultiPackedFile::Lock()
+bool BaseMultiPackedFile::Lock()
 {
 	EnterCriticalSection(&criticalSection);
 	return true;
 }
 
-bool LooseSC4MultiPackedFile::Unlock()
+bool BaseMultiPackedFile::Unlock()
 {
 	LeaveCriticalSection(&criticalSection);
 	return true;
 }
 
-uint32_t LooseSC4MultiPackedFile::GetSegmentID() const
+uint32_t BaseMultiPackedFile::GetSegmentID() const
 {
 	return segmentID;
 }
 
-bool LooseSC4MultiPackedFile::SetSegmentID(uint32_t const& segmentID)
+bool BaseMultiPackedFile::SetSegmentID(uint32_t const& segmentID)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -188,7 +206,7 @@ bool LooseSC4MultiPackedFile::SetSegmentID(uint32_t const& segmentID)
 	return true;
 }
 
-uint32_t LooseSC4MultiPackedFile::GetRecordCount(cIGZPersistResourceKeyFilter* filter)
+uint32_t BaseMultiPackedFile::GetRecordCount(cIGZPersistResourceKeyFilter* filter)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -215,7 +233,7 @@ uint32_t LooseSC4MultiPackedFile::GetRecordCount(cIGZPersistResourceKeyFilter* f
 	return count;
 }
 
-uint32_t LooseSC4MultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList* list, cIGZPersistResourceKeyFilter* filter)
+uint32_t BaseMultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList* list, cIGZPersistResourceKeyFilter* filter)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -223,19 +241,26 @@ uint32_t LooseSC4MultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList*
 
 	if (isOpen && list)
 	{
-		// We iterate through the elements in reverse order because that is the behavior of the
-		// resource manager code this class replaces.
-		// The resource manager maintains its list of DBPF files in last in first out (LIFO) order.
-		for (auto ppSegment = segments.rbegin(); ppSegment != segments.rend(); ppSegment++)
+		if (enumerateSegmentsBackToFront)
 		{
-			totalResourceCount += (*ppSegment)->GetResourceKeyList(list, filter);
+			for (auto iter = segments.rbegin(); iter != segments.rend(); iter++)
+			{
+				totalResourceCount += (*iter)->GetResourceKeyList(list, filter);
+			}
+		}
+		else
+		{
+			for (cIGZPersistDBSegment* pSegment : segments)
+			{
+				totalResourceCount += pSegment->GetResourceKeyList(list, filter);
+			}
 		}
 	}
 
 	return totalResourceCount;
 }
 
-bool LooseSC4MultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList& list)
+bool BaseMultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList& list)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -243,12 +268,19 @@ bool LooseSC4MultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList& lis
 
 	if (isOpen)
 	{
-		// We iterate through the elements in reverse order because that is the behavior of the
-		// resource manager code this class replaces.
-		// The resource manager maintains its list of DBPF files in last in first out (LIFO) order.
-		for (auto ppSegment = segments.rbegin(); ppSegment != segments.rend(); ppSegment++)
+		if (enumerateSegmentsBackToFront)
 		{
-			(*ppSegment)->GetResourceKeyList(list);
+			for (auto iter = segments.rbegin(); iter != segments.rend(); iter++)
+			{
+				(*iter)->GetResourceKeyList(list);
+			}
+		}
+		else
+		{
+			for (cIGZPersistDBSegment* pSegment : segments)
+			{
+				pSegment->GetResourceKeyList(list);
+			}
 		}
 		result = true;
 	}
@@ -256,7 +288,7 @@ bool LooseSC4MultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList& lis
 	return result;
 }
 
-bool LooseSC4MultiPackedFile::TestForRecord(cGZPersistResourceKey const& key)
+bool BaseMultiPackedFile::TestForRecord(cGZPersistResourceKey const& key)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -264,13 +296,18 @@ bool LooseSC4MultiPackedFile::TestForRecord(cGZPersistResourceKey const& key)
 
 	if (isOpen)
 	{
-		result = tgiMap.contains(key);
+		auto item = tgiMap.find(key);
+
+		if (item != tgiMap.end())
+		{
+			result = item->second->TestForRecord(key);
+		}
 	}
 
 	return result;
 }
 
-uint32_t LooseSC4MultiPackedFile::GetRecordSize(cGZPersistResourceKey const& key)
+uint32_t BaseMultiPackedFile::GetRecordSize(cGZPersistResourceKey const& key)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -289,7 +326,7 @@ uint32_t LooseSC4MultiPackedFile::GetRecordSize(cGZPersistResourceKey const& key
 	return result;
 }
 
-bool LooseSC4MultiPackedFile::OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record, uint32_t fileAccessMode)
+bool BaseMultiPackedFile::OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record, uint32_t fileAccessMode)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -308,12 +345,12 @@ bool LooseSC4MultiPackedFile::OpenRecord(cGZPersistResourceKey const& key, cIGZP
 	return result;
 }
 
-bool LooseSC4MultiPackedFile::CreateNewRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** unknown2)
+bool BaseMultiPackedFile::CreateNewRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** unknown2)
 {
 	return false;
 }
 
-bool LooseSC4MultiPackedFile::CloseRecord(cIGZPersistDBRecord* record)
+bool BaseMultiPackedFile::CloseRecord(cIGZPersistDBRecord* record)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -335,7 +372,7 @@ bool LooseSC4MultiPackedFile::CloseRecord(cIGZPersistDBRecord* record)
 	return result;
 }
 
-bool LooseSC4MultiPackedFile::CloseRecord(cIGZPersistDBRecord** record)
+bool BaseMultiPackedFile::CloseRecord(cIGZPersistDBRecord** record)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -357,7 +394,7 @@ bool LooseSC4MultiPackedFile::CloseRecord(cIGZPersistDBRecord** record)
 	return result;
 }
 
-bool LooseSC4MultiPackedFile::AbortRecord(cIGZPersistDBRecord* record)
+bool BaseMultiPackedFile::AbortRecord(cIGZPersistDBRecord* record)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -379,7 +416,7 @@ bool LooseSC4MultiPackedFile::AbortRecord(cIGZPersistDBRecord* record)
 	return result;
 }
 
-bool LooseSC4MultiPackedFile::AbortRecord(cIGZPersistDBRecord** record)
+bool BaseMultiPackedFile::AbortRecord(cIGZPersistDBRecord** record)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -401,12 +438,12 @@ bool LooseSC4MultiPackedFile::AbortRecord(cIGZPersistDBRecord** record)
 	return result;
 }
 
-bool LooseSC4MultiPackedFile::DeleteRecord(cGZPersistResourceKey const& key)
+bool BaseMultiPackedFile::DeleteRecord(cGZPersistResourceKey const& key)
 {
 	return false;
 }
 
-uint32_t LooseSC4MultiPackedFile::ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize)
+uint32_t BaseMultiPackedFile::ReadRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t& recordSize)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -425,12 +462,12 @@ uint32_t LooseSC4MultiPackedFile::ReadRecord(cGZPersistResourceKey const& key, v
 	return result;
 }
 
-bool LooseSC4MultiPackedFile::WriteRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t recordSize)
+bool BaseMultiPackedFile::WriteRecord(cGZPersistResourceKey const& key, void* buffer, uint32_t recordSize)
 {
 	return false;
 }
 
-bool LooseSC4MultiPackedFile::Init(uint32_t segmentID, cIGZString const& path, bool unknown2)
+bool BaseMultiPackedFile::Init(uint32_t segmentID, cIGZString const& path, bool unknown2)
 {
 	if (!initialized)
 	{
@@ -443,35 +480,50 @@ bool LooseSC4MultiPackedFile::Init(uint32_t segmentID, cIGZString const& path, b
 	return true;
 }
 
-void LooseSC4MultiPackedFile::SetPathFilter(cIGZString const&)
+void BaseMultiPackedFile::SetPathFilter(cIGZString const&)
 {
 }
 
-int32_t LooseSC4MultiPackedFile::ConsolidateDatabaseRecords(cIGZPersistDBSegment* target, cIGZPersistResourceKeyFilter* filter)
+int32_t BaseMultiPackedFile::ConsolidateDatabaseRecords(cIGZPersistDBSegment* target, cIGZPersistResourceKeyFilter* filter)
 {
 	int32_t totalCopiedRecords = 0;
 
-	// We iterate through the elements in reverse order because that is the behavior of the
-	// resource manager code this class replaces.
-	// The resource manager maintains its list of DBPF files in last in first out (LIFO) order.
-	for (auto ppSegment = segments.rbegin(); ppSegment != segments.rend(); ppSegment++)
+	if (enumerateSegmentsBackToFront)
 	{
-		cIGZPersistDBSegment* pSegment = *ppSegment;
-		cIGZDBSegmentPackedFile* pPackedFile = nullptr;
-
-		if (pSegment->QueryInterface(GZIID_cIGZDBSegmentPackedFile, reinterpret_cast<void**>(&pPackedFile)))
+		for (auto iter = segments.rbegin(); iter != segments.rend(); iter++)
 		{
-			int32_t copiedRecordCount = pPackedFile->CopyDatabaseRecords(target, filter, false, true);
-			totalCopiedRecords += copiedRecordCount;
+			cIGZDBSegmentPackedFile* pPackedFile = nullptr;
 
-			pPackedFile->Release();
+			if ((*iter)->QueryInterface(GZIID_cIGZDBSegmentPackedFile, reinterpret_cast<void**>(&pPackedFile)))
+			{
+				int32_t copiedRecordCount = pPackedFile->CopyDatabaseRecords(target, filter, false, true);
+				totalCopiedRecords += copiedRecordCount;
+
+				pPackedFile->Release();
+			}
+		}
+	}
+	else
+	{
+
+		for (cIGZPersistDBSegment* pSegment : segments)
+		{
+			cIGZDBSegmentPackedFile* pPackedFile = nullptr;
+
+			if (pSegment->QueryInterface(GZIID_cIGZDBSegmentPackedFile, reinterpret_cast<void**>(&pPackedFile)))
+			{
+				int32_t copiedRecordCount = pPackedFile->CopyDatabaseRecords(target, filter, false, true);
+				totalCopiedRecords += copiedRecordCount;
+
+				pPackedFile->Release();
+			}
 		}
 	}
 
 	return totalCopiedRecords;
 }
 
-int32_t LooseSC4MultiPackedFile::ConsolidateDatabaseRecords(cIGZString const& targetPath, cIGZPersistResourceKeyFilter* filter)
+int32_t BaseMultiPackedFile::ConsolidateDatabaseRecords(cIGZString const& targetPath, cIGZPersistResourceKeyFilter* filter)
 {
 	int result = -1;
 
@@ -502,7 +554,7 @@ int32_t LooseSC4MultiPackedFile::ConsolidateDatabaseRecords(cIGZString const& ta
 	return result;
 }
 
-bool LooseSC4MultiPackedFile::FindDBSegment(cGZPersistResourceKey const& key, cIGZPersistDBSegment** outSegment)
+bool BaseMultiPackedFile::FindDBSegment(cGZPersistResourceKey const& key, cIGZPersistDBSegment** outSegment)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -526,17 +578,17 @@ bool LooseSC4MultiPackedFile::FindDBSegment(cGZPersistResourceKey const& key, cI
 	return result;
 }
 
-uint32_t LooseSC4MultiPackedFile::GetSegmentCount()
+uint32_t BaseMultiPackedFile::GetSegmentCount()
 {
 	return static_cast<uint32_t>(segments.size());
 }
 
-cIGZPersistDBSegment* LooseSC4MultiPackedFile::GetSegmentByIndex(uint32_t index)
+cIGZPersistDBSegment* BaseMultiPackedFile::GetSegmentByIndex(uint32_t index)
 {
 	return segments[index];
 }
 
-void LooseSC4MultiPackedFile::AddedResource(cGZPersistResourceKey const& key, cIGZPersistDBSegment* pSegment)
+void BaseMultiPackedFile::AddedResource(cGZPersistResourceKey const& key, cIGZPersistDBSegment* pSegment)
 {
 	if (pSegment)
 	{
@@ -544,41 +596,18 @@ void LooseSC4MultiPackedFile::AddedResource(cGZPersistResourceKey const& key, cI
 	}
 }
 
-void LooseSC4MultiPackedFile::RemovedResource(cGZPersistResourceKey const& key, cIGZPersistDBSegment*)
+void BaseMultiPackedFile::RemovedResource(cGZPersistResourceKey const& key, cIGZPersistDBSegment*)
 {
 	tgiMap.erase(key);
 }
 
-bool LooseSC4MultiPackedFile::Open(const std::vector<cRZBaseString>& files)
-{
-	segments.reserve(files.size());
-
-	cIGZCOM* pCOM = RZGetFramework()->GetCOMObject();
-
-	for (const cRZBaseString& path : files)
-	{
-		if (!SetupGZPersistDBSegment(path, pCOM))
-		{
-			Logger::GetInstance().WriteLineFormatted(
-				LogLevel::Error,
-				"Failed to load: %s",
-				path.ToChar());
-		}
-	}
-
-	isOpen = segments.size() > 0;
-	return isOpen;
-}
-
-bool LooseSC4MultiPackedFile::SetupGZPersistDBSegment(
+bool BaseMultiPackedFile::SetupGZPersistDBSegment(
 	cIGZString const& path,
 	cIGZCOM* const pCOM)
 {
 	bool result = false;
 
-	cRZAutoRefCount<PersistResourceKeyList> pKeyList(
-		new PersistResourceKeyList(),
-		cRZAutoRefCount<PersistResourceKeyList>::kAddRef);
+	cRZAutoRefCount<PersistResourceKeyList> pKeyList(new PersistResourceKeyList(), cRZAutoRefCount<PersistResourceKeyList>::kAddRef);
 	cRZAutoRefCount<cIGZPersistDBSegment> pSegment;
 
 	if (pCOM->GetClassObject(

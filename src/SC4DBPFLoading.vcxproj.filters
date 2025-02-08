@@ -22,6 +22,12 @@
     <Filter Include="Header Files\GZCOM">
       <UniqueIdentifier>{55969e5e-2491-4049-8687-619fc7c065a7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\multi-packed-file">
+      <UniqueIdentifier>{d1d7d0c6-cc44-4172-ae79-cc4eb731f608}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\multi-packed-file">
+      <UniqueIdentifier>{54c4dfb1-e86d-4c69-a23e-f883270b3af1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Logger.cpp">
@@ -99,9 +105,6 @@
     <ClCompile Include="GZStringConvert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MultiPackedFile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PersistResourceKeyList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -125,6 +128,15 @@
     </ClCompile>
     <ClCompile Include="PathUtil.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="multi-packed-file\BaseMultiPackedFile.cpp">
+      <Filter>Source Files\multi-packed-file</Filter>
+    </ClCompile>
+    <ClCompile Include="multi-packed-file\DatMultiPackedFile.cpp">
+      <Filter>Source Files\multi-packed-file</Filter>
+    </ClCompile>
+    <ClCompile Include="multi-packed-file\LooseSC4PluginMultiPackedFile.cpp">
+      <Filter>Source Files\multi-packed-file</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -179,9 +191,6 @@
     <ClInclude Include="GZStringConvert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MultiPackedFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PersistResourceKeyHash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -211,6 +220,15 @@
     </ClInclude>
     <ClInclude Include="PathUtil.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="multi-packed-file\BaseMultiPackedFile.h">
+      <Filter>Header Files\multi-packed-file</Filter>
+    </ClInclude>
+    <ClInclude Include="multi-packed-file\LooseSC4PluginMultiPackedFile.h">
+      <Filter>Header Files\multi-packed-file</Filter>
+    </ClInclude>
+    <ClInclude Include="multi-packed-file\DatMultiPackedFile.h">
+      <Filter>Header Files\multi-packed-file</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
