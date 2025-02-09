@@ -8,8 +8,10 @@ The plugin can be downloaded from the Releases tab: https://github.com/0xC000005
 
 * Reduces the time for the game to show the SC4 logo by up to 90%.
 * Adds an optimization to the game code for large data reads.
+* Allows the game to handle file paths that are longer than the standard Microsoft Windows limit of 260 characters.
+* Reduces lag and city load times with large numbers of .SC4* plugins.
 * Disables the game code that searches the entire file if the DBPF signature was not found.
-* Changes the game code that loads the `.SC4*` files to ignore files with non-DBPF file extensions, .txt, .png, etc. 
+* Changes the game code that loads the .SC4* files to ignore files with non-DBPF file extensions, .txt, .png, etc. 
     * With this change only .SC4Desc, .SC4Lot, .SC4Model, and files without any file extension will be loaded.
     * Files without any file extension are included due to some older plugins having that issue.
 * Changes the 'missing plugin' dialog to display the plugin pack ID in hexadecimal.
@@ -58,7 +60,6 @@ See [LICENSE.txt](LICENSE.txt) for more information.
 [Windows Implementation Library](https://github.com/microsoft/wil) - MIT License    
 [Boost.Algorithm](https://www.boost.org/doc/libs/1_84_0/libs/algorithm/doc/html/index.html) - Boost Software License, Version 1.0.    
 [Boost.Unordered](https://www.boost.org/doc/libs/1_84_0/libs/unordered/doc/html/unordered.html) - Boost Software License, Version 1.0.    
-
 
 # Source Code
 
