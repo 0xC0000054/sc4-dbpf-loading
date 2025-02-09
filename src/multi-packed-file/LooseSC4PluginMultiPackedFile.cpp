@@ -20,9 +20,5 @@ LooseSC4MultiPackedFile::LooseSC4MultiPackedFile() : BaseMultiPackedFile(true)
 
 std::vector<cRZBaseString> LooseSC4MultiPackedFile::GetDBPFFiles(const cIGZString& folderPath) const
 {
-	std::vector<cRZBaseString> files;
-
-	SC4DirectoryEnumerator::ScanDirectoryForLooseSC4FilesRecursive(folderPath, files);
-
-	return files;
+	return SC4DirectoryEnumerator::GetLooseSC4FilesRecurseSubdirectories(folderPath);
 }

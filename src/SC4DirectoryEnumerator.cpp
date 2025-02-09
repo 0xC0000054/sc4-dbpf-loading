@@ -169,12 +169,20 @@ namespace
 	}
 }
 
-void SC4DirectoryEnumerator::ScanDirectoryForDatFilesRecursive(const cIGZString& root, std::vector<cRZBaseString>& output)
+std::vector<cRZBaseString> SC4DirectoryEnumerator::GetDatFilesRecurseSubdirectories(const cIGZString& root)
 {
-	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, output, DatFilesPredicate);
+	std::vector<cRZBaseString> files;
+
+	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, files, DatFilesPredicate);
+
+	return files;
 }
 
-void SC4DirectoryEnumerator::ScanDirectoryForLooseSC4FilesRecursive(const cIGZString& root, std::vector<cRZBaseString>& output)
+std::vector<cRZBaseString> SC4DirectoryEnumerator::GetLooseSC4FilesRecurseSubdirectories(const cIGZString& root)
 {
-	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, output, SC4FilesPredicate);
+	std::vector<cRZBaseString> files;
+
+	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, files, SC4FilesPredicate);
+
+	return files;
 }

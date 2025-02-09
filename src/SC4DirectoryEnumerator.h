@@ -16,11 +16,6 @@
 
 namespace SC4DirectoryEnumerator
 {
-	void ScanDirectoryForDatFilesRecursive(
-		const cIGZString& root,
-		std::vector<cRZBaseString>& output);
-
-	void ScanDirectoryForLooseSC4FilesRecursive(
-		const cIGZString& root,
-		std::vector<cRZBaseString>& output);
+	std::vector<cRZBaseString> GetDatFilesRecurseSubdirectories(const cIGZString& root);
+	std::vector<cRZBaseString> GetLooseSC4FilesRecurseSubdirectories(const cIGZString& root);
 };

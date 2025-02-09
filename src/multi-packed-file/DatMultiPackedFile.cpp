@@ -19,10 +19,5 @@ DatMultiPackedFile::DatMultiPackedFile() : BaseMultiPackedFile(false)
 
 std::vector<cRZBaseString> DatMultiPackedFile::GetDBPFFiles(const cIGZString& folderPath) const
 {
-	std::vector<cRZBaseString> files;
-
-	SC4DirectoryEnumerator::ScanDirectoryForDatFilesRecursive(folderPath, files);
-
-	return files;
+	return SC4DirectoryEnumerator::GetDatFilesRecurseSubdirectories(folderPath);
 }
-
