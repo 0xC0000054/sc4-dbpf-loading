@@ -103,12 +103,12 @@ namespace
 	}
 
 	void NativeScanDirectoryRecursive(
-		const std::filesystem::path& directory,
+		const std::wstring& directory,
 		bool normalizeExtendedPath,
 		std::vector<cRZBaseString>& files,
 		FileNamePredicate Predicate)
 	{
-		std::vector<std::filesystem::path> subFolders;
+		std::vector<std::wstring> subFolders;
 
 		WIN32_FIND_DATAW findData{};
 
