@@ -108,9 +108,6 @@
     <ClCompile Include="PersistResourceKeyList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SC4DirectoryEnumerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cRZFileHooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -118,9 +115,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Patcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LooseSC4PluginScanPatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\vendor\gzcom-dll\src\cRZBaseUnknown.cpp">
@@ -137,6 +131,12 @@
     </ClCompile>
     <ClCompile Include="multi-packed-file\LooseSC4PluginMultiPackedFile.cpp">
       <Filter>Source Files\multi-packed-file</Filter>
+    </ClCompile>
+    <ClCompile Include="PluginDirectoriesScanPatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SC4DirectoryEnumerator.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -197,9 +197,6 @@
     <ClInclude Include="PersistResourceKeyList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SC4DirectoryEnumerator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cRZFileHooks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -207,9 +204,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Patcher.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LooseSC4PluginScanPatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\include\cRZBaseUnknown.h">
@@ -229,6 +223,12 @@
     </ClInclude>
     <ClInclude Include="multi-packed-file\DatMultiPackedFile.h">
       <Filter>Header Files\multi-packed-file</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginDirectoriesScanPatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SC4DirectoryEnumerator.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -43,6 +43,9 @@ public:
 	uint32_t AddRef() override;
 	uint32_t Release() override;
 
+	cIGZPersistDBSegment* AsIGZPersistDBSegment();
+	bool Open(const std::vector<cRZBaseString>& files);
+
 	// cIGZPersistDBSegment
 
 	bool Init() override;

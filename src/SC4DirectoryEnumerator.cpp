@@ -47,12 +47,12 @@ namespace
 		throw std::runtime_error(buffer);
 	}
 
-	bool DatFilesPredicate(const std::wstring_view& fileName)
+	bool IsDatFile(const std::wstring_view& fileName)
 	{
 		return boost::iends_with(fileName, L".DAT"sv);
 	}
 
-	bool SC4FilesPredicate(const std::wstring_view& fileName)
+	bool IsLooseSC4File(const std::wstring_view& fileName)
 	{
 		bool result = false;
 
@@ -78,7 +78,10 @@ namespace
 
 	typedef bool(*FileNamePredicate)(const std::wstring_view& fileName);
 
-	std::wstring GetAllFilesSearchPattern(const std::wstring& directory, bool normalizeExtendedPath)
+	std::wstring GetSearchPattern(
+		const std::wstring& directory,
+		bool normalizeExtendedPath,
+		const std::wstring_view& pattern)
 	{
 		std::wstring searchDirectory;
 
@@ -99,7 +102,7 @@ namespace
 			searchDirectory = directory;
 		}
 
-		return PathUtil::Combine(searchDirectory, L"*"sv);
+		return PathUtil::Combine(searchDirectory, pattern);
 	}
 
 	void NativeScanDirectoryRecursive(
@@ -112,7 +115,7 @@ namespace
 
 		WIN32_FIND_DATAW findData{};
 
-		const std::filesystem::path searchPattern = GetAllFilesSearchPattern(directory, normalizeExtendedPath);
+		const std::filesystem::path searchPattern = GetSearchPattern(directory, normalizeExtendedPath, L"*"sv);
 
 		wil::unique_hfind findHandle(FindFirstFileExW(
 			searchPattern.c_str(),
@@ -167,22 +170,151 @@ namespace
 			NativeScanDirectoryRecursive(path, false, files, Predicate);
 		}
 	}
+
+	void NativeScanDirectoryRecursive(
+		const std::wstring& directory,
+		bool normalizeExtendedPath,
+		std::vector<cRZBaseString>& datFiles,
+		std::vector<cRZBaseString>& sc4Files)
+	{
+		std::vector<std::wstring> subFolders;
+
+		WIN32_FIND_DATAW findData{};
+
+		const std::filesystem::path searchPattern = GetSearchPattern(directory, normalizeExtendedPath, L"*"sv);
+
+		wil::unique_hfind findHandle(FindFirstFileExW(
+			searchPattern.c_str(),
+			FindExInfoBasic,
+			&findData,
+			FindExSearchNameMatch,
+			nullptr,
+			0));
+
+		if (findHandle)
+		{
+			do
+			{
+				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+				{
+					if (!wil::path_is_dot_or_dotdot(findData.cFileName))
+					{
+						subFolders.push_back(PathUtil::Combine(directory, std::wstring_view(findData.cFileName)));
+					}
+				}
+				else
+				{
+					const std::wstring_view fileName(findData.cFileName);
+
+					if (IsDatFile(fileName))
+					{
+						datFiles.push_back(CreateUtf8FilePath(directory, fileName));
+					}
+					else if (IsLooseSC4File(fileName))
+					{
+						sc4Files.push_back(CreateUtf8FilePath(directory, fileName));
+					}
+				}
+			} while (FindNextFileW(findHandle.get(), &findData));
+
+			DWORD lastError = GetLastError();
+
+			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
+			{
+				ThrowExceptionForWin32Error("FindNextFileW", lastError);
+			}
+		}
+		else
+		{
+			DWORD lastError = GetLastError();
+
+			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
+			{
+				ThrowExceptionForWin32Error("FindFirstFileExW", lastError);
+			}
+		}
+
+		// Recursively search the sub-directories.
+		for (const auto& path : subFolders)
+		{
+			NativeScanDirectoryRecursive(path, false, datFiles, sc4Files);
+		}
+	}
+
+	std::vector<cRZBaseString> GetDirectoryFiles(const std::wstring& directory, const std::wstring_view& pattern)
+	{
+		std::vector<cRZBaseString> files;
+
+		WIN32_FIND_DATAW findData{};
+
+		const std::filesystem::path searchPattern = GetSearchPattern(directory, true, pattern);
+
+		wil::unique_hfind findHandle(FindFirstFileExW(
+			searchPattern.c_str(),
+			FindExInfoBasic,
+			&findData,
+			FindExSearchNameMatch,
+			nullptr,
+			0));
+
+		if (findHandle)
+		{
+			do
+			{
+				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+				{
+					files.push_back(CreateUtf8FilePath(directory, findData.cFileName));
+				}
+			} while (FindNextFileW(findHandle.get(), &findData));
+
+			DWORD lastError = GetLastError();
+
+			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
+			{
+				ThrowExceptionForWin32Error("FindNextFileW", lastError);
+			}
+		}
+		else
+		{
+			DWORD lastError = GetLastError();
+
+			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
+			{
+				ThrowExceptionForWin32Error("FindFirstFileExW", lastError);
+			}
+		}
+
+		return files;
+	}
+}
+
+std::vector<cRZBaseString> SC4DirectoryEnumerator::GetDatFiles(const cIGZString& directory)
+{
+	return GetDirectoryFiles(GZStringConvert::ToUtf16(directory), L"*.dat"sv);
 }
 
 std::vector<cRZBaseString> SC4DirectoryEnumerator::GetDatFilesRecurseSubdirectories(const cIGZString& root)
 {
 	std::vector<cRZBaseString> files;
 
-	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, files, DatFilesPredicate);
+	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, files, IsDatFile);
 
 	return files;
+}
+
+void SC4DirectoryEnumerator::GetDBPFFilesRecurseSubdirectories(
+	const cIGZString& root,
+	std::vector<cRZBaseString>& datFiles,
+	std::vector<cRZBaseString>& sc4Files)
+{
+	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, datFiles, sc4Files);
 }
 
 std::vector<cRZBaseString> SC4DirectoryEnumerator::GetLooseSC4FilesRecurseSubdirectories(const cIGZString& root)
 {
 	std::vector<cRZBaseString> files;
 
-	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, files, SC4FilesPredicate);
+	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, files, IsLooseSC4File);
 
 	return files;
 }
