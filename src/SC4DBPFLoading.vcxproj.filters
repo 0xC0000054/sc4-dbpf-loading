@@ -135,7 +135,7 @@
     <ClCompile Include="multi-packed-file\DatMultiPackedFile.cpp">
       <Filter>Source Files\multi-packed-file</Filter>
     </ClCompile>
-    <ClCompile Include="multi-packed-file\LooseSC4PluginMultiPackedFile.cpp">
+    <ClCompile Include="multi-packed-file\SC4PluginMultiPackedFile.cpp">
       <Filter>Source Files\multi-packed-file</Filter>
     </ClCompile>
   </ItemGroup>
@@ -224,10 +224,10 @@
     <ClInclude Include="multi-packed-file\BaseMultiPackedFile.h">
       <Filter>Header Files\multi-packed-file</Filter>
     </ClInclude>
-    <ClInclude Include="multi-packed-file\LooseSC4PluginMultiPackedFile.h">
+    <ClInclude Include="multi-packed-file\DatMultiPackedFile.h">
       <Filter>Header Files\multi-packed-file</Filter>
     </ClInclude>
-    <ClInclude Include="multi-packed-file\DatMultiPackedFile.h">
+    <ClInclude Include="multi-packed-file\SC4PluginMultiPackedFile.h">
       <Filter>Header Files\multi-packed-file</Filter>
     </ClInclude>
   </ItemGroup>

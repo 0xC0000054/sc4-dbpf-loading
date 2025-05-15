@@ -38,7 +38,7 @@
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="multi-packed-file\BaseMultiPackedFile.cpp" />
     <ClCompile Include="multi-packed-file\DatMultiPackedFile.cpp" />
-    <ClCompile Include="multi-packed-file\LooseSC4PluginMultiPackedFile.cpp" />
+    <ClCompile Include="multi-packed-file\SC4PluginMultiPackedFile.cpp" />
     <ClCompile Include="Patcher.cpp" />
     <ClCompile Include="PathUtil.cpp" />
     <ClCompile Include="PersistResourceKeyList.cpp" />
@@ -67,7 +67,7 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="multi-packed-file\BaseMultiPackedFile.h" />
     <ClInclude Include="multi-packed-file\DatMultiPackedFile.h" />
-    <ClInclude Include="multi-packed-file\LooseSC4PluginMultiPackedFile.h" />
+    <ClInclude Include="multi-packed-file\SC4PluginMultiPackedFile.h" />
     <ClInclude Include="Patcher.h" />
     <ClInclude Include="PathUtil.h" />
     <ClInclude Include="PersistResourceKeyBoostHash.h" />

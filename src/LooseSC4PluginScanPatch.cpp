@@ -11,7 +11,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "LooseSC4PluginScanPatch.h"
-#include "LooseSC4PluginMultiPackedFile.h"
+#include "SC4PluginMultiPackedFile.h"
 #include "Logger.h"
 #include "Patcher.h"
 #include "cIGZCOM.h"
@@ -31,7 +31,7 @@ namespace
 		bool result = false;
 
 		cRZAutoRefCount<cIGZPersistDBSegment> looseSC4MultiPackedFile(
-			new LooseSC4MultiPackedFile(),
+			new SC4MultiPackedFile(),
 			cRZAutoRefCount<cIGZPersistDBSegment>::kAddRef);
 
 		if (looseSC4MultiPackedFile->Init())
