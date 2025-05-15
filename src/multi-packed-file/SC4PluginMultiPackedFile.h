@@ -19,10 +19,10 @@ class cIGZPersistResourceManager;
 // A cIGZPersistDBSegmentMultiPackedFiles implementation for .SC4* files (.SC4Desc, .SC4Lot, and .SC4Model)
 // that are loaded from the specified root folder and any sub folders.
 // This class replaces the game's linear search code with a per-TGI lookup.
-class SC4MultiPackedFile final : public BaseMultiPackedFile
+class SC4PluginMultiPackedFile final : public BaseMultiPackedFile
 {
 public:
-	SC4MultiPackedFile();
+	SC4PluginMultiPackedFile();
 
 protected:
 	std::vector<cRZBaseString> GetDBPFFiles(const cIGZString& folderPath) const override;

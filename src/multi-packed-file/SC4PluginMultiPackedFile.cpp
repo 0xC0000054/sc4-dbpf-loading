@@ -13,12 +13,11 @@
 #include "SC4PluginMultiPackedFile.h"
 #include "SC4DirectoryEnumerator.h"
 
-
-SC4MultiPackedFile::SC4MultiPackedFile() : BaseMultiPackedFile(true)
+SC4PluginMultiPackedFile::SC4PluginMultiPackedFile() : BaseMultiPackedFile(true)
 {
 }
 
-std::vector<cRZBaseString> SC4MultiPackedFile::GetDBPFFiles(const cIGZString& folderPath) const
+std::vector<cRZBaseString> SC4PluginMultiPackedFile::GetDBPFFiles(const cIGZString& folderPath) const
 {
 	return SC4DirectoryEnumerator::GetLooseSC4FilesRecurseSubdirectories(folderPath);
 }

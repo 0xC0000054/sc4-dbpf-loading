@@ -31,7 +31,7 @@ namespace
 		bool result = false;
 
 		cRZAutoRefCount<cIGZPersistDBSegment> looseSC4MultiPackedFile(
-			new SC4MultiPackedFile(),
+			new SC4PluginMultiPackedFile(),
 			cRZAutoRefCount<cIGZPersistDBSegment>::kAddRef);
 
 		if (looseSC4MultiPackedFile->Init())
