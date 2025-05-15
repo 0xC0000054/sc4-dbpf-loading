@@ -42,6 +42,11 @@ BaseMultiPackedFile::~BaseMultiPackedFile()
 	DeleteCriticalSection(&criticalSection);
 }
 
+cIGZPersistDBSegment* BaseMultiPackedFile::AsIGZPersistDBSegment()
+{
+	return static_cast<cIGZPersistDBSegment*>(this);
+}
+
 bool BaseMultiPackedFile::QueryInterface(uint32_t riid, void** ppvObj)
 {
 	if (riid == GZIID_cIGZPersistDBSegmentMultiPackedFiles)

@@ -16,6 +16,7 @@
 
 namespace SC4DirectoryEnumerator
 {
+	std::vector<cRZBaseString> GetDatFiles(const cIGZString& root);
 	std::vector<cRZBaseString> GetDatFilesRecurseSubdirectories(const cIGZString& root);
 	std::vector<cRZBaseString> GetLooseSC4FilesRecurseSubdirectories(const cIGZString& root);
 };

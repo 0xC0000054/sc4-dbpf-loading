@@ -78,7 +78,10 @@ namespace
 
 	typedef bool(*FileNamePredicate)(const std::wstring_view& fileName);
 
-	std::wstring GetAllFilesSearchPattern(const std::wstring& directory, bool normalizeExtendedPath)
+	std::wstring GetFolderSearchPattern(
+		const std::wstring& directory,
+		const std::wstring_view& searchPattern,
+		bool normalizeExtendedPath)
 	{
 		std::wstring searchDirectory;
 
@@ -99,7 +102,52 @@ namespace
 			searchDirectory = directory;
 		}
 
-		return PathUtil::Combine(searchDirectory, L"*"sv);
+		return PathUtil::Combine(searchDirectory, searchPattern);
+	}
+
+	void NativeScanDirectory(
+		const std::wstring& directory,
+		const std::wstring_view& searchPattern,
+		std::vector<cRZBaseString>& files)
+	{
+		WIN32_FIND_DATAW findData{};
+
+		const std::wstring directoryWithSearchPattern = GetFolderSearchPattern(
+			directory,
+			searchPattern,
+			true);
+
+		wil::unique_hfind findHandle(FindFirstFileExW(
+			directoryWithSearchPattern.c_str(),
+			FindExInfoBasic,
+			&findData,
+			FindExSearchNameMatch,
+			nullptr,
+			0));
+
+		if (findHandle)
+		{
+			do
+			{
+				files.push_back(CreateUtf8FilePath(directory, findData.cFileName));
+			} while (FindNextFileW(findHandle.get(), &findData));
+
+			DWORD lastError = GetLastError();
+
+			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
+			{
+				ThrowExceptionForWin32Error("FindNextFileW", lastError);
+			}
+		}
+		else
+		{
+			DWORD lastError = GetLastError();
+
+			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
+			{
+				ThrowExceptionForWin32Error("FindFirstFileExW", lastError);
+			}
+		}
 	}
 
 	void NativeScanDirectoryRecursive(
@@ -112,10 +160,13 @@ namespace
 
 		WIN32_FIND_DATAW findData{};
 
-		const std::filesystem::path searchPattern = GetAllFilesSearchPattern(directory, normalizeExtendedPath);
+		const std::wstring directoryWithSearchPattern = GetFolderSearchPattern(
+			directory,
+			L"*"sv,
+			normalizeExtendedPath);
 
 		wil::unique_hfind findHandle(FindFirstFileExW(
-			searchPattern.c_str(),
+			directoryWithSearchPattern.c_str(),
 			FindExInfoBasic,
 			&findData,
 			FindExSearchNameMatch,
@@ -167,6 +218,15 @@ namespace
 			NativeScanDirectoryRecursive(path, false, files, Predicate);
 		}
 	}
+}
+
+std::vector<cRZBaseString> SC4DirectoryEnumerator::GetDatFiles(const cIGZString& root)
+{
+	std::vector<cRZBaseString> files;
+
+	NativeScanDirectory(GZStringConvert::ToUtf16(root), L"*.DAT"sv, files);
+
+	return files;
 }
 
 std::vector<cRZBaseString> SC4DirectoryEnumerator::GetDatFilesRecurseSubdirectories(const cIGZString& root)
