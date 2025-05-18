@@ -30,12 +30,12 @@ class BaseMultiPackedFile : public cRZBaseUnkown, public cIGZPersistDBSegment, p
 protected:
 	/**
 	 * @brief The constructor derived classed must call.
-	 * @param enumerateSegmentsBackToFront true if the game see the segments in last in first out order; otherwise, false
-	 * to use first in first out order.
+	 * @param enumerateSegmentsLastInFirstOut true if the segments should be enumerated in
+	 * last in first out order; otherwise, false to use first in first out order.
 	 * cGZPersistResourceManager uses last in first out for its file list.
 	 * cGZPersistDBSegmentMultiPackedFiles uses first in first out.
 	 */
-	BaseMultiPackedFile(bool enumerateSegmentsBackToFront);
+	BaseMultiPackedFile(bool enumerateSegmentsLastInFirstOut);
 
 public:
 	~BaseMultiPackedFile();
@@ -110,7 +110,7 @@ private:
 
 	uint32_t segmentID;
 	cRZBaseString folderPath;
-	bool enumerateSegmentsBackToFront;
+	bool enumerateSegmentsLastInFirstOut;
 	bool initialized;
 	bool isOpen;
 	CRITICAL_SECTION criticalSection;

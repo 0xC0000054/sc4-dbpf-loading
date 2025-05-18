@@ -27,11 +27,11 @@
 #include "GZServPtrs.h"
 #include "wil/resource.h"
 
-BaseMultiPackedFile::BaseMultiPackedFile(bool enumerateSegmentsBackToFront)
+BaseMultiPackedFile::BaseMultiPackedFile(bool enumerateSegmentsLastInFirstOut)
 	: segmentID(0),
 	  isOpen(false),
 	  initialized(false),
-	  enumerateSegmentsBackToFront(enumerateSegmentsBackToFront),
+	  enumerateSegmentsLastInFirstOut(enumerateSegmentsLastInFirstOut),
 	  criticalSection{}
 {
 	InitializeCriticalSectionEx(&criticalSection, 0, 0);
@@ -244,7 +244,7 @@ uint32_t BaseMultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList* lis
 
 	if (isOpen && list)
 	{
-		if (enumerateSegmentsBackToFront)
+		if (enumerateSegmentsLastInFirstOut)
 		{
 			for (auto iter = segments.rbegin(); iter != segments.rend(); iter++)
 			{
@@ -271,7 +271,7 @@ bool BaseMultiPackedFile::GetResourceKeyList(cIGZPersistResourceKeyList& list)
 
 	if (isOpen)
 	{
-		if (enumerateSegmentsBackToFront)
+		if (enumerateSegmentsLastInFirstOut)
 		{
 			for (auto iter = segments.rbegin(); iter != segments.rend(); iter++)
 			{
@@ -491,7 +491,7 @@ int32_t BaseMultiPackedFile::ConsolidateDatabaseRecords(cIGZPersistDBSegment* ta
 {
 	int32_t totalCopiedRecords = 0;
 
-	if (enumerateSegmentsBackToFront)
+	if (enumerateSegmentsLastInFirstOut)
 	{
 		for (auto iter = segments.rbegin(); iter != segments.rend(); iter++)
 		{
