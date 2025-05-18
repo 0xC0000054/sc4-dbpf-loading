@@ -78,7 +78,9 @@ void Logger::Init(std::filesystem::path logFilePath, LogLevel level, bool includ
 	{
 		initialized = true;
 
-		logFile.open(logFilePath, std::ofstream::out | std::ofstream::trunc);
+		// Open the log file in binary mode to allow UTF-8 text to be written without modification.
+		// UTF-8 is the native encoding of SC4.
+		logFile.open(logFilePath, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
 		logLevel = level;
 		writeTimeStamp = includeTimeStamp;
 	}
