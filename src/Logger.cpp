@@ -131,6 +131,6 @@ void Logger::WriteLineCore(const char* const message)
 		PrintLineToDebugOutput(message);
 #endif // _DEBUG
 
-		logFile << message << std::endl;
+		logFile << message << '\n';
 	}
 }
