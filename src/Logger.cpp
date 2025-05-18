@@ -15,37 +15,9 @@
 
 namespace
 {
-	std::string GetTimeStamp()
-	{
-		char buffer[1024]{};
-
-		GetTimeFormatA(
-			LOCALE_USER_DEFAULT,
-			0,
-			nullptr,
-			nullptr,
-			buffer,
-			_countof(buffer));
-
-		std::string time(buffer);
-
-		// Add a space to the end of the time string if it doe not have one.
-		if (time.size() > 0 && time[time.size() - 1] != ' ')
-		{
-			time.append(1, ' ');
-		}
-
-		return time;
-	}
-
 #ifdef _DEBUG
-	void PrintLineToDebugOutput(const char* timeStamp, const char* line)
+	void PrintLineToDebugOutput(const char* line)
 	{
-		if (timeStamp)
-		{
-			OutputDebugStringA(timeStamp);
-		}
-
 		OutputDebugStringA(line);
 		OutputDebugStringA("\n");
 	}
@@ -61,7 +33,6 @@ Logger& Logger::GetInstance()
 
 Logger::Logger()
 	: initialized(false),
-	  writeTimeStamp(true),
 	  logFile(),
 	  logLevel(LogLevel::Error)
 {
@@ -72,7 +43,7 @@ Logger::~Logger()
 	initialized = false;
 }
 
-void Logger::Init(std::filesystem::path logFilePath, LogLevel level, bool includeTimeStamp)
+void Logger::Init(std::filesystem::path logFilePath, LogLevel level)
 {
 	if (!initialized)
 	{
@@ -82,7 +53,6 @@ void Logger::Init(std::filesystem::path logFilePath, LogLevel level, bool includ
 		// UTF-8 is the native encoding of SC4.
 		logFile.open(logFilePath, std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
 		logLevel = level;
-		writeTimeStamp = includeTimeStamp;
 	}
 }
 
@@ -157,24 +127,10 @@ void Logger::WriteLineCore(const char* const message)
 {
 	if (initialized && logFile)
 	{
-		if (writeTimeStamp)
-		{
-			std::string timeStamp = GetTimeStamp();
-
 #ifdef _DEBUG
-			PrintLineToDebugOutput(timeStamp.c_str(), message);
+		PrintLineToDebugOutput(message);
 #endif // _DEBUG
 
-			logFile << timeStamp << message << std::endl;
-		}
-		else
-		{
-#ifdef _DEBUG
-			PrintLineToDebugOutput(nullptr, message);
-#endif // _DEBUG
-
-			logFile << message << std::endl;
-
-		}
+		logFile << message << std::endl;
 	}
 }
