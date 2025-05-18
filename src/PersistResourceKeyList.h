@@ -19,11 +19,13 @@
 class PersistResourceKeyList final : public cRZBaseUnkown, public cIGZPersistResourceKeyList
 {
 public:
+	using container = std::vector<cGZPersistResourceKey>;
+
 	PersistResourceKeyList();
 
 	~PersistResourceKeyList();
 
-	const std::vector<cGZPersistResourceKey>& GetKeys() const;
+	const container& GetKeys() const;
 
 	// cIGZPersistResourceKeyList
 
@@ -48,6 +50,6 @@ public:
 private:
 	static void InsertKeyCallback(cGZPersistResourceKey const& key, void* pContext);
 
-	std::vector<cGZPersistResourceKey> keys;
+	container keys;
 };
 

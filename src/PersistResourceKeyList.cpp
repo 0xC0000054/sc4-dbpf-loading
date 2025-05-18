@@ -20,7 +20,7 @@ PersistResourceKeyList::~PersistResourceKeyList()
 {
 }
 
-const std::vector<cGZPersistResourceKey>& PersistResourceKeyList::GetKeys() const
+const PersistResourceKeyList::container& PersistResourceKeyList::GetKeys() const
 {
 	return keys;
 }

@@ -628,7 +628,7 @@ bool BaseMultiPackedFile::SetupGZPersistDBSegment(
 					pKeyList->EraseAll();
 					pSegment->GetResourceKeyList(pKeyList, nullptr);
 
-					const std::vector<cGZPersistResourceKey>& keys = pKeyList->GetKeys();
+					const PersistResourceKeyList::container& keys = pKeyList->GetKeys();
 					for (const cGZPersistResourceKey& key : keys)
 					{
 						tgiMap.insert_or_assign(key, pSegment);
