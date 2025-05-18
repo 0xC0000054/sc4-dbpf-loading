@@ -108,10 +108,13 @@ bool BaseMultiPackedFile::Open(bool openRead, bool openWrite)
 				segments.reserve(files.size());
 
 				cIGZCOM* pCOM = RZGetFramework()->GetCOMObject();
+				cRZAutoRefCount<PersistResourceKeyList> keyList(
+					new PersistResourceKeyList(),
+					cRZAutoRefCount<PersistResourceKeyList>::kAddRef);
 
 				for (const cRZBaseString& path : files)
 				{
-					if (!SetupGZPersistDBSegment(path, pCOM))
+					if (!SetupGZPersistDBSegment(path, pCOM, keyList))
 					{
 						Logger::GetInstance().WriteLineFormatted(
 							LogLevel::Error,
@@ -603,11 +606,11 @@ void BaseMultiPackedFile::RemovedResource(cGZPersistResourceKey const& key, cIGZ
 
 bool BaseMultiPackedFile::SetupGZPersistDBSegment(
 	cIGZString const& path,
-	cIGZCOM* const pCOM)
+	cIGZCOM* const pCOM,
+	PersistResourceKeyList* const pKeyList)
 {
 	bool result = false;
 
-	cRZAutoRefCount<PersistResourceKeyList> pKeyList(new PersistResourceKeyList(), cRZAutoRefCount<PersistResourceKeyList>::kAddRef);
 	cRZAutoRefCount<cIGZPersistDBSegment> pSegment;
 
 	if (pCOM->GetClassObject(

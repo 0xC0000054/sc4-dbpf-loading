@@ -23,6 +23,7 @@
 
 class cIGZCOM;
 class cIGZPersistResourceManager;
+class PersistResourceKeyList;
 
 class BaseMultiPackedFile : public cRZBaseUnkown, public cIGZPersistDBSegment, public cIGZPersistDBSegmentMultiPackedFiles
 {
@@ -104,7 +105,8 @@ protected:
 private:
 	bool SetupGZPersistDBSegment(
 		cIGZString const& path,
-		cIGZCOM* const pCOM);
+		cIGZCOM* const pCOM,
+		PersistResourceKeyList* const pKeyList);
 
 	uint32_t segmentID;
 	cRZBaseString folderPath;
