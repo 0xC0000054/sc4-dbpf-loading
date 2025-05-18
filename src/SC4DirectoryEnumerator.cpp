@@ -14,6 +14,7 @@
 #include "GZStringConvert.h"
 #include "PathUtil.h"
 #include "StringViewUtil.h"
+#include <format>
 #include <stdexcept>
 #include <Windows.h>
 #include "wil/resource.h"
@@ -33,18 +34,20 @@ namespace
 		return GZStringConvert::FromUtf16(nativePath);
 	}
 
-	void ThrowExceptionForWin32Error(const char* win32MethodName, DWORD error)
+	void ThrowExceptionForWin32Error(
+		const char* win32MethodName,
+		DWORD error,
+		const std::wstring& fileName)
 	{
-		char buffer[1024]{};
+		const cRZBaseString fileNameAsUtf8 = GZStringConvert::FromUtf16(fileName);
 
-		std::snprintf(
-			buffer,
-			sizeof(buffer),
-			"%s failed with error code %u.",
+		const std::string message = std::format(
+			"{0} failed with error code {1}. Path={2}",
 			win32MethodName,
-			error);
+			error,
+			fileNameAsUtf8.ToChar());
 
-		throw std::runtime_error(buffer);
+		throw std::runtime_error(message);
 	}
 
 	bool DatFilesPredicate(const std::wstring_view& fileName)
@@ -78,28 +81,24 @@ namespace
 
 	typedef bool(*FileNamePredicate)(const std::wstring_view& fileName);
 
-	std::wstring GetAllFilesSearchPattern(const std::wstring& directory, bool normalizeExtendedPath)
+	std::wstring GetSearchDirectoryPath(const std::wstring& directory, bool normalizeExtendedPath)
 	{
-		std::wstring searchDirectory;
-
 		if (PathUtil::MustAddExtendedPathPrefix(directory))
 		{
-			searchDirectory = PathUtil::AddExtendedPathPrefix(directory);
+			std::wstring extendedPath = PathUtil::AddExtendedPathPrefix(directory);
 
 			if (normalizeExtendedPath)
 			{
 				// The extended path must be normalized because the OS won't do it for us.
 				// We only do this for the top-level directory, because if it is normalized
 				// any sub directories will also be valid.
-				searchDirectory = PathUtil::Normalize(searchDirectory);
+				extendedPath = PathUtil::Normalize(extendedPath);
 			}
-		}
-		else
-		{
-			searchDirectory = directory;
+
+			return extendedPath;
 		}
 
-		return PathUtil::Combine(searchDirectory, L"*"sv);
+		return directory;
 	}
 
 	void NativeScanDirectoryRecursive(
@@ -112,7 +111,8 @@ namespace
 
 		WIN32_FIND_DATAW findData{};
 
-		const std::filesystem::path searchPattern = GetAllFilesSearchPattern(directory, normalizeExtendedPath);
+		const std::wstring searchDirectory = GetSearchDirectoryPath(directory, normalizeExtendedPath);
+		const std::wstring searchPattern = PathUtil::Combine(searchDirectory, L"*"sv);
 
 		wil::unique_hfind findHandle(FindFirstFileExW(
 			searchPattern.c_str(),
@@ -148,7 +148,7 @@ namespace
 
 			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
 			{
-				ThrowExceptionForWin32Error("FindNextFileW", lastError);
+				ThrowExceptionForWin32Error("FindNextFileW", lastError, searchDirectory);
 			}
 		}
 		else
@@ -157,7 +157,7 @@ namespace
 
 			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
 			{
-				ThrowExceptionForWin32Error("FindFirstFileExW", lastError);
+				ThrowExceptionForWin32Error("FindFirstFileExW", lastError, searchDirectory);
 			}
 		}
 
