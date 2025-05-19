@@ -116,4 +116,3 @@ private:
 	boost::unordered::unordered_flat_map<const cGZPersistResourceKey, cIGZPersistDBSegment*> tgiMap;
 	std::vector<cIGZPersistDBSegment*> segments;
 };
-

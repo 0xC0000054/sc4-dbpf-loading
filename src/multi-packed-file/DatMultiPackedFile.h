@@ -23,4 +23,3 @@ public:
 protected:
 	std::vector<cRZBaseString> GetDBPFFiles(const cIGZString& path) const override;
 };
-
