@@ -63,7 +63,7 @@ namespace
 
 		if (!extension.empty())
 		{
-			result = boost::istarts_with(extension, ".SC4"sv);
+			result = boost::istarts_with(extension, L".SC4"sv);
 		}
 		else
 		{
