@@ -22,7 +22,6 @@
 #include <Windows.h>
 
 class cIGZCOM;
-class cIGZPersistResourceManager;
 class PersistResourceKeyList;
 
 class BaseMultiPackedFile : public cRZBaseUnknown, public cIGZPersistDBSegment, public cIGZPersistDBSegmentMultiPackedFiles
