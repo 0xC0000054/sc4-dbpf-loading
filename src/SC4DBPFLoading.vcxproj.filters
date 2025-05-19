@@ -185,9 +185,6 @@
     <ClInclude Include="..\vendor\gzcom-dll\include\cIGZPersistDBSegmentMultiPackedFiles.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
-    <ClInclude Include="..\vendor\gzcom-dll\include\cRZBaseString.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GZStringConvert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -229,6 +226,9 @@
     </ClInclude>
     <ClInclude Include="multi-packed-file\SC4PluginMultiPackedFile.h">
       <Filter>Header Files\multi-packed-file</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\gzcom-dll\include\cRZBaseString.h">
+      <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
