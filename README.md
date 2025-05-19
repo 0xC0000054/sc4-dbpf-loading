@@ -20,8 +20,9 @@ The plugin can be downloaded from the Releases tab: https://github.com/0xC000005
 
 * SimCity 4 version 641
 * Windows 10 or later
+* [Microsoft Visual C++ 2022 x86 Redistribute](https://aka.ms/vs/17/release/vc_redist.x86.exe)
 
-The plugin may work on Windows 7 or later with the [Microsoft Visual C++ 2022 x86 Redistribute](https://aka.ms/vs/17/release/vc_redist.x86.exe) installed, but I do not have the ability to test that.
+The plugin may work on Windows 7, but I do not have the ability to test that.
 
 ## Installation
 
