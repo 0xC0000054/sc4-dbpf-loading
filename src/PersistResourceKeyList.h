@@ -16,7 +16,7 @@
 #include "PersistResourceKeyHash.h"
 #include <vector>
 
-class PersistResourceKeyList final : public cRZBaseUnkown, public cIGZPersistResourceKeyList
+class PersistResourceKeyList final : public cRZBaseUnknown, public cIGZPersistResourceKeyList
 {
 public:
 	using container = std::vector<cGZPersistResourceKey>;

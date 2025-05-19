@@ -59,17 +59,17 @@ bool BaseMultiPackedFile::QueryInterface(uint32_t riid, void** ppvObj)
 		return true;
 	}
 
-	return cRZBaseUnkown::QueryInterface(riid, ppvObj);
+	return cRZBaseUnknown::QueryInterface(riid, ppvObj);
 }
 
 uint32_t BaseMultiPackedFile::AddRef()
 {
-	return cRZBaseUnkown::AddRef();
+	return cRZBaseUnknown::AddRef();
 }
 
 uint32_t BaseMultiPackedFile::Release()
 {
-	return cRZBaseUnkown::Release();
+	return cRZBaseUnknown::Release();
 }
 
 bool BaseMultiPackedFile::Init()
@@ -329,7 +329,7 @@ uint32_t BaseMultiPackedFile::GetRecordSize(cGZPersistResourceKey const& key)
 	return result;
 }
 
-bool BaseMultiPackedFile::OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record, uint32_t fileAccessMode)
+bool BaseMultiPackedFile::OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record, cIGZFile::AccessMode accessMode)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
 
@@ -341,7 +341,7 @@ bool BaseMultiPackedFile::OpenRecord(cGZPersistResourceKey const& key, cIGZPersi
 
 		if (item != tgiMap.end())
 		{
-			result = item->second->OpenRecord(key, record, fileAccessMode);
+			result = item->second->OpenRecord(key, record, accessMode);
 		}
 	}
 

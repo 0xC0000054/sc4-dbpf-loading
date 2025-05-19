@@ -25,7 +25,7 @@ class cIGZCOM;
 class cIGZPersistResourceManager;
 class PersistResourceKeyList;
 
-class BaseMultiPackedFile : public cRZBaseUnkown, public cIGZPersistDBSegment, public cIGZPersistDBSegmentMultiPackedFiles
+class BaseMultiPackedFile : public cRZBaseUnknown, public cIGZPersistDBSegment, public cIGZPersistDBSegmentMultiPackedFiles
 {
 protected:
 	/**
@@ -70,7 +70,7 @@ public:
 
 	bool TestForRecord(cGZPersistResourceKey const& key) override;
 	uint32_t GetRecordSize(cGZPersistResourceKey const& key) override;
-	bool OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record, uint32_t fileAccessMode) override;
+	bool OpenRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record, cIGZFile::AccessMode accessMode) override;
 	bool CreateNewRecord(cGZPersistResourceKey const& key, cIGZPersistDBRecord** record) override;
 
 	bool CloseRecord(cIGZPersistDBRecord* record) override;

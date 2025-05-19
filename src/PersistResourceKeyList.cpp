@@ -35,17 +35,17 @@ bool PersistResourceKeyList::QueryInterface(uint32_t riid, void** ppvObj)
 		return true;
 	}
 
-	return cRZBaseUnkown::QueryInterface(riid, ppvObj);
+	return cRZBaseUnknown::QueryInterface(riid, ppvObj);
 }
 
 uint32_t PersistResourceKeyList::AddRef()
 {
-	return cRZBaseUnkown::AddRef();
+	return cRZBaseUnknown::AddRef();
 }
 
 uint32_t PersistResourceKeyList::Release()
 {
-	return cRZBaseUnkown::Release();
+	return cRZBaseUnknown::Release();
 }
 
 bool PersistResourceKeyList::Insert(cGZPersistResourceKey const& key)
