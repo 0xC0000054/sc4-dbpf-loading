@@ -16,9 +16,6 @@
     <Filter Include="Source Files\GZCOM">
       <UniqueIdentifier>{634b96ad-93c3-4d7e-81f2-492a2d0f96d0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\EASTL">
-      <UniqueIdentifier>{e6636fd3-168e-425b-a128-09d78c7839a3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\GZCOM">
       <UniqueIdentifier>{55969e5e-2491-4049-8687-619fc7c065a7}</UniqueIdentifier>
     </Filter>
@@ -203,15 +200,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
-    <None Include="packages.config" />
     <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natvis" />
   </ItemGroup>
 </Project>
