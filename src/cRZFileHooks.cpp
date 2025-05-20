@@ -248,7 +248,7 @@ namespace
 					else
 					{
 						pThis->fileHandle = hFile;
-						pThis->isOpen = 1;
+						pThis->isOpen = true;
 						pThis->accessMode = accessMode;
 						pThis->creationMode = creationMode;
 						pThis->shareMode = shareMode;
