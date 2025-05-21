@@ -17,6 +17,7 @@
 #include "LooseSC4PluginScanPatch.h"
 #include "DatMultiPackedFile.h"
 #include "Patcher.h"
+#include "SC4PluginMultiPackedFile.h"
 #include "SC4VersionDetection.h"
 #include "Stopwatch.h"
 #include "StringViewUtil.h"
@@ -305,11 +306,16 @@ namespace
 				gameVersion);
 		}
 	}
-}
 
-static cIGZUnknown* CreateMultiPackedFile()
-{
-	return static_cast<cIGZPersistDBSegment*>(new DatMultiPackedFile());
+	cIGZUnknown* CreateDatMultiPackedFile()
+	{
+		return static_cast<cIGZPersistDBSegment*>(new DatMultiPackedFile());
+	}
+
+	cIGZUnknown* CreateSC4PluginMultiPackedFile()
+	{
+		return static_cast<cIGZPersistDBSegment*>(new SC4PluginMultiPackedFile());
+	}
 }
 
 class DBPFLoadingDllDirector : public cRZCOMDllDirector
@@ -318,7 +324,9 @@ public:
 
 	DBPFLoadingDllDirector()
 	{
-		AddCls(GZCLSID_cGZPersistDBSegmentMultiPackedFiles, CreateMultiPackedFile);
+		AddCls(GZCLSID_cGZPersistDBSegmentMultiPackedFiles, CreateDatMultiPackedFile);
+		AddCls(GZCLSID_SC4PluginMultiPackedFile, CreateSC4PluginMultiPackedFile);
+
 		std::filesystem::path dllFolderPath = GetDllFolderPath();
 
 		std::filesystem::path logFilePath = dllFolderPath;
@@ -350,6 +358,7 @@ private:
 		// SC4's built-in cGZPersistDBSegmentMultiPackedFiles class is registered with a version
 		// of 0, so using 1 will allow us to replace SC4's built-in version.
 		pCallback(GZCLSID_cGZPersistDBSegmentMultiPackedFiles, 1, pContext);
+		pCallback(GZCLSID_SC4PluginMultiPackedFile, 0, pContext);
 	}
 
 	bool OnStart(cIGZCOM* pCOM)
