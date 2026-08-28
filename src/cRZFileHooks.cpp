@@ -285,19 +285,20 @@ namespace
 		return result;
 	}
 
-	typedef bool(__thiscall* pfn_cRZFile_ReadWithCount)(cRZFileProxy* pThis, void* outBuffer, uint32_t& byteCount);
+	typedef bool(__thiscall* pfn_cRZFile_ReadWriteWithCount)(cRZFileProxy* pThis, void* outBuffer, uint32_t& byteCount);
 
-	static pfn_cRZFile_ReadWithCount RealReadWithCount = nullptr;
+	static pfn_cRZFile_ReadWriteWithCount RealReadWithCount = nullptr;
 
 	bool __fastcall HookedReadWithCount(cRZFileProxy* pThis, void* edxUnused, void* outBuffer, uint32_t& byteCount)
 	{
 		bool result = false;
 #if 0
-		DebugUtil::PrintLineToDebugOutputFormatted(
-			"HookedReadWithCount: %u bytes requested, position: %u, name: %s",
+		Logger::GetInstance().WriteLineFormatted(
+			LogLevel::Info,
+			"HookedReadWithCount: %u bytes requested, position: 0x%08x, name: %s",
 			byteCount,
 			pThis->currentFilePosition + (pThis->currentFilePosition - pThis->readBufferOffset),
-			reinterpret_cast<cIGZString*>(&pThis->nameRZStr)->ToChar());
+			pThis->nameRZStr.AsIGZString()->ToChar());
 #endif
 
 		if (pThis->isOpen)
@@ -352,6 +353,80 @@ namespace
 
 		return result;
 	}
+
+	static pfn_cRZFile_ReadWriteWithCount RealWriteWithCount = nullptr;
+
+	bool __fastcall HookedWriteWithCount(cRZFileProxy* pThis, void* edxUnused, void* buffer, uint32_t& byteCount)
+	{
+		bool result = false;
+#if 0
+		Logger::GetInstance().WriteLineFormatted(
+			LogLevel::Info,
+			"HookedWriteWithCount: Writing %u bytes, position: 0x%08x, write buffer length: %u, name: %s",
+			byteCount,
+			pThis->currentFilePosition,
+			pThis->writeBufferLength,
+			pThis->nameRZStr.AsIGZString()->ToChar());
+#endif
+
+		if (pThis->isOpen)
+		{
+			if (byteCount == 0)
+			{
+				result = true;
+			}
+			else
+			{
+				// If the number of bytes to write is larger than the games buffer size, we will send the
+				// buffer directly to the OS.
+				// This can significantly reduce the required number of system calls for large writes when
+				// compared to the game's standard behavior of copying from a fixed-size buffer in a loop.
+				//
+				// To minimize complexity and potential compatibility issues, our code only runs when the
+				// following conditions are true:
+				//
+				// 1. The game's write buffer size is greater than 0 and less than the number of bytes to write.
+				// 2. The file is at the correct position to start writing.
+				// 3. The current write buffer is empty.
+				//
+				// If any of these conditions are not met, the call will be forwarded to the game's
+				// original write method.
+				if (byteCount >= pThis->maxWriteBufferSize
+					&& pThis->maxWriteBufferSize > 0
+					&& pThis->position == pThis->currentFilePosition
+					&& pThis->writeBufferLength == 0)
+				{
+					// Invalidate the read buffer
+					pThis->readBufferOffset = 0;
+					pThis->readBufferLength = 0;
+
+					DWORD bytesWritten = 0;
+
+					if (WriteFile(pThis->fileHandle, buffer, byteCount, &bytesWritten, nullptr))
+					{
+						byteCount = static_cast<uint32_t>(bytesWritten);
+						pThis->position += bytesWritten;
+						result = true;
+					}
+					else
+					{
+						// The buffered write loop in cRZFile_FillWriteBuffer ignores
+						// the error code from WriteFile, so we recreate that behavior.
+						pThis->position = SetFilePointer(pThis->fileHandle, 0, nullptr, FILE_CURRENT);
+					}
+
+					pThis->writeBufferOffset = pThis->position;
+					pThis->writeBufferLength = 0;
+				}
+				else
+				{
+					result = RealWriteWithCount(pThis, buffer, byteCount);
+				}
+			}
+		}
+
+		return result;
+	}
 }
 
 
@@ -362,7 +437,8 @@ void cRZFileHooks::Install()
 	try
 	{
 		RealOpen = reinterpret_cast<pfn_cRZFile_Open>(0x919B00);
-		RealReadWithCount = reinterpret_cast<pfn_cRZFile_ReadWithCount>(0x9192A9);
+		RealReadWithCount = reinterpret_cast<pfn_cRZFile_ReadWriteWithCount>(0x9192A9);
+		RealWriteWithCount = reinterpret_cast<pfn_cRZFile_ReadWriteWithCount>(0x9193e3);
 
 		DetourRestoreAfterWith();
 
@@ -370,6 +446,7 @@ void cRZFileHooks::Install()
 		DetourUpdateThread(GetCurrentThread());
 		DetourAttach(&(PVOID&)RealOpen, HookedOpen);
 		DetourAttach(&(PVOID&)RealReadWithCount, HookedReadWithCount);
+		DetourAttach(&(PVOID&)RealWriteWithCount, HookedWriteWithCount);
 		LONG error = DetourTransactionCommit();
 
 		if (error == NO_ERROR)
