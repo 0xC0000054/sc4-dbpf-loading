@@ -26,7 +26,10 @@ namespace PathUtil
 {
 	std::wstring AddExtendedPathPrefix(const std::wstring& path);
 	std::wstring Combine(const std::wstring& root, const std::wstring_view& segment);
+	std::string_view GetFileName(const std::string_view& path);
+	std::wstring_view GetFileName(const std::wstring_view& path);
 	std::wstring_view GetExtension(const std::wstring_view& path);
+	bool IsDirectorySeparator(char value);
 	bool IsDirectorySeparator(wchar_t value);
 	bool MustAddExtendedPathPrefix(const std::wstring& path);
 	std::wstring Normalize(const std::wstring& path);

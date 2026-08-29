@@ -19,6 +19,7 @@
  */
 
 #include "cRZFileHooks.h"
+#include "cRZFileProxy.h"
 #include "cIGZString.h"
 #include "DebugUtil.h"
 #include "GZStringConvert.h"
@@ -75,79 +76,6 @@ namespace
 		return utf16Path;
 	}
 
-	class cRZString
-	{
-	public:
-		const cIGZString* AsIGZString() const
-		{
-			return reinterpret_cast<const cIGZString*>(this);
-		}
-	private:
-		void* vtable;
-		intptr_t stdStringFields[3];
-		uint32_t refCount;
-	};
-
-	enum class RZFileAccessMode : uint32_t
-	{
-		None = 0,
-		Read = 1,
-		Write = 2,
-		ReadWrite = Read | Write,
-	};
-	DEFINE_ENUM_FLAG_OPERATORS(RZFileAccessMode);
-
-	enum class RZFileCreationMode : uint32_t
-	{
-		CreateNew = 0,
-		CreateAlways = 1,
-		OpenExisting = 2,
-		OpenAlways = 3,
-		TruncateExisting = 4,
-	};
-
-	enum class RZFileShareMode : uint32_t
-	{
-		None = 0,
-		Read = 1,
-		ReadWrite = 2,
-	};
-
-	class cRZFileProxy
-	{
-	public:
-		void* vtable;
-		cRZString nameRZStr;
-		bool isOpen;
-		HANDLE fileHandle;
-		RZFileAccessMode accessMode;
-		RZFileCreationMode creationMode;
-		RZFileShareMode shareMode;
-		intptr_t unknown2;
-		uint32_t fileIOError;
-		intptr_t unknown3[5];
-		uint32_t currentFilePosition;
-		uint32_t position;
-		uint32_t maxReadBufferSize;
-		void* pReadBuffer;
-		intptr_t unknown4[2];
-		uint32_t readBufferOffset;
-		uint32_t readBufferLength;
-		uint32_t maxWriteBufferSize;
-		void* pWriteBuffer;
-		intptr_t unknown5[2];
-		uint32_t writeBufferOffset;
-		uint32_t writeBufferLength;
-	};
-
-	static_assert(offsetof(cRZFileProxy, isOpen) == 0x18);
-	static_assert(offsetof(cRZFileProxy, fileHandle) == 0x1C);
-	static_assert(offsetof(cRZFileProxy, fileIOError) == 0x30);
-	static_assert(offsetof(cRZFileProxy, currentFilePosition) == 0x48);
-	static_assert(offsetof(cRZFileProxy, readBufferOffset) == 0x60);
-	static_assert(offsetof(cRZFileProxy, readBufferLength) == 0x64);
-	static_assert(offsetof(cRZFileProxy, writeBufferOffset) == 0x78);
-
 	void SetRZFileErrorCode(cRZFileProxy* pThis, DWORD lastError)
 	{
 		switch (lastError)
@@ -166,17 +94,17 @@ namespace
 
 	typedef bool(__thiscall *pfn_cRZFile_Open)(
 		cRZFileProxy* pThis,
-		RZFileAccessMode accessMode,
-		RZFileCreationMode creationMode,
-		RZFileShareMode shareMode);
+		cIGZFile::AccessMode accessMode,
+		cIGZFile::CreationMode creationMode,
+		cIGZFile::ShareMode shareMode);
 	static pfn_cRZFile_Open RealOpen = nullptr;
 
 	bool __fastcall HookedOpen(
 		cRZFileProxy* pThis,
 		void* edxUnused,
-		RZFileAccessMode accessMode,
-		RZFileCreationMode creationMode,
-		RZFileShareMode shareMode)
+		cIGZFile::AccessMode accessMode,
+		cIGZFile::CreationMode creationMode,
+		cIGZFile::ShareMode shareMode)
 	{
 		bool result = false;
 
@@ -200,42 +128,42 @@ namespace
 
 					switch (accessMode)
 					{
-					case RZFileAccessMode::Read:
+					case cIGZFile::AccessMode::Read:
 						dwDesiredAccess = GENERIC_READ;
 						break;
-					case RZFileAccessMode::Write:
+					case cIGZFile::AccessMode::Write:
 						dwDesiredAccess = GENERIC_WRITE;
 						break;
-					case RZFileAccessMode::ReadWrite:
+					case cIGZFile::AccessMode::ReadWrite:
 						dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
 						break;
 					}
 
 					switch (creationMode)
 					{
-					case RZFileCreationMode::CreateNew:
+					case cIGZFile::CreationMode::CreateNew:
 						dwCreationDisposition = CREATE_NEW;
 						break;
-					case RZFileCreationMode::CreateAlways:
+					case cIGZFile::CreationMode::CreateAlways:
 						dwCreationDisposition = CREATE_ALWAYS;
 						break;
-					case RZFileCreationMode::OpenExisting:
+					case cIGZFile::CreationMode::OpenExisting:
 						dwCreationDisposition = OPEN_EXISTING;
 						break;
-					case RZFileCreationMode::OpenAlways:
+					case cIGZFile::CreationMode::OpenAlways:
 						dwCreationDisposition = OPEN_ALWAYS;
 						break;
-					case RZFileCreationMode::TruncateExisting:
+					case cIGZFile::CreationMode::TruncateExisting:
 						dwCreationDisposition = TRUNCATE_EXISTING;
 						break;
 					}
 
 					switch (shareMode)
 					{
-					case RZFileShareMode::Read:
+					case cIGZFile::ShareMode::Read:
 						dwShareMode = FILE_SHARE_READ;
 						break;
-					case RZFileShareMode::ReadWrite:
+					case cIGZFile::ShareMode::ReadWrite:
 						dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
 						break;
 					}

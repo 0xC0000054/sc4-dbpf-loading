@@ -70,6 +70,58 @@ std::wstring PathUtil::Combine(const std::wstring& root, const std::wstring_view
 	return root;
 }
 
+std::string_view PathUtil::GetFileName(const std::string_view& path)
+{
+	std::string_view fileName;
+
+	if (path.size() > 0)
+	{
+		const size_t length = path.size();
+
+		// This loop will exclude file names that start with a period, but that
+		// is the desired behavior.
+
+		for (size_t i = length - 1; i != 0; i--)
+		{
+			const char c = path[i];
+
+			if (IsDirectorySeparator(c) || c == ':')
+			{
+				fileName = path.substr(i + 1, length - i - 1);
+				break;
+			}
+		}
+	}
+
+	return fileName;
+}
+
+std::wstring_view PathUtil::GetFileName(const std::wstring_view& path)
+{
+	std::wstring_view fileName;
+
+	if (path.size() > 0)
+	{
+		const size_t length = path.size();
+
+		// This loop will exclude file names that start with a period, but that
+		// is the desired behavior.
+
+		for (size_t i = length - 1; i != 0; i--)
+		{
+			const wchar_t c = path[i];
+
+			if (IsDirectorySeparator(c) || c == L':')
+			{
+				fileName = path.substr(i + 1, length - i - 1);
+				break;
+			}
+		}
+	}
+
+	return fileName;
+}
+
 std::wstring_view PathUtil::GetExtension(const std::wstring_view& path)
 {
 	std::wstring_view extension;
@@ -103,6 +155,11 @@ std::wstring_view PathUtil::GetExtension(const std::wstring_view& path)
 	}
 
 	return extension;
+}
+
+bool PathUtil::IsDirectorySeparator(char value)
+{
+	return value == '\\' || value == '/';
 }
 
 bool PathUtil::IsDirectorySeparator(wchar_t value)

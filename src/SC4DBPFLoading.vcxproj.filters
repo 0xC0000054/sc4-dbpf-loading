@@ -105,6 +105,9 @@
     <ClCompile Include="multi-packed-file\SC4PluginMultiPackedFile.cpp">
       <Filter>Source Files\multi-packed-file</Filter>
     </ClCompile>
+    <ClCompile Include="cGZDBWriteRecordPackedFileHooks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h">
@@ -196,6 +199,12 @@
     </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cRZBaseString.h">
       <Filter>Header Files\GZCOM</Filter>
+    </ClInclude>
+    <ClInclude Include="cGZDBWriteRecordPackedFileHooks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cRZFileProxy.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

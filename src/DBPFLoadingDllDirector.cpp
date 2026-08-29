@@ -19,6 +19,7 @@
  */
 
 #include "version.h"
+#include "cGZDBWriteRecordPackedFileHooks.h"
 #include "cRZFileHooks.h"
 #include "DebugUtil.h"
 #include "Logger.h"
@@ -294,6 +295,7 @@ namespace
 			DisableResourceLoadDebuggingCode();
 			InstallDBPFOpenFindHeaderRecordHook();
 			InstallMissingPluginDialogHexPatch();
+			cGZDBWriteRecordPackedFileHooks::Install();
 			cRZFileHooks::Install();
 			LooseSC4PluginScanPatch::Install();
 
