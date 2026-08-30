@@ -23,6 +23,8 @@
 #include "Patcher.h"
 #include "PathUtil.h"
 
+using namespace std::literals::string_view_literals;
+
 namespace
 {
 	typedef cRZFileProxy* (__thiscall* pfn_cRZFile_ctor_IGZString)(cRZFileProxy* pThis, cIGZString const& path);
@@ -38,7 +40,7 @@ namespace
 		// Subfiles that use the game's COM serializer such as the prop subfile (Record_2977aa47) do not benefit
 		// from the larger buffer size due to the seeking that is required to write the serialized data header,
 		// each seek operation will flush the write buffer to disk.
-		if (fileName.starts_with("Record_6a0f82b2"))
+		if (fileName.starts_with("Record_6a0f82b2"sv))
 		{
 			// By default, the game uses read and write buffers that are 512 bytes.
 			// Because this code path only gets hit for files that are at least 200,000 bytes
