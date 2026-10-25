@@ -32,12 +32,12 @@
     <ClCompile Include="Patcher.cpp" />
     <ClCompile Include="PathUtil.cpp" />
     <ClCompile Include="PersistResourceKeyList.cpp" />
-    <ClCompile Include="QFSDecoder.cpp" />
-    <ClCompile Include="QFSDecoderAVX2.cpp">
+    <ClCompile Include="qfs-decoder\QFSDecoder.cpp" />
+    <ClCompile Include="qfs-decoder\QFSDecoderAVX2.cpp">
       <AdditionalOptions>/arch:AVX2 %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="QFSDecoderHooks.cpp" />
+    <ClCompile Include="qfs-decoder\QFSDecoderHooks.cpp" />
     <ClCompile Include="SC4DirectoryEnumerator.cpp" />
     <ClCompile Include="LooseSC4PluginScanPatch.cpp" />
     <ClCompile Include="SC4VersionDetection.cpp" />
@@ -69,8 +69,8 @@
     <ClInclude Include="PersistResourceKeyBoostHash.h" />
     <ClInclude Include="PersistResourceKeyHash.h" />
     <ClInclude Include="PersistResourceKeyList.h" />
-    <ClInclude Include="QFSDecoder.h" />
-    <ClInclude Include="QFSDecoderHooks.h" />
+    <ClInclude Include="qfs-decoder\QFSDecoder.h" />
+    <ClInclude Include="qfs-decoder\QFSDecoderHooks.h" />
     <ClInclude Include="SC4DirectoryEnumerator.h" />
     <ClInclude Include="LooseSC4PluginScanPatch.h" />
     <ClInclude Include="SC4VersionDetection.h" />
@@ -130,7 +130,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\wil\include;.\;.\multi-packed-file</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\wil\include;.\;.\multi-packed-file;.\qfs-decoder</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -158,7 +158,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\wil\include;.\;.\multi-packed-file</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\wil\include;.\;.\multi-packed-file;.\qfs-decoder</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
