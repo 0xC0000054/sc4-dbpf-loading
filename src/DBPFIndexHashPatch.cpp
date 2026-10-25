@@ -39,8 +39,16 @@
 
 namespace
 {
-	// This hash function has chained multiplies that make every bit of the type, group and instance affect
-	// the high bits of the hash, and the bucket is taken from those bits with a multiply instead of a modulo.
+	// The hash mixes in one ID at a time, using the 32-bit primes from xxHash:
+	//
+	//   hash = instance * XXH_PRIME32_1
+	//   hash = (hash ^ group) * XXH_PRIME32_2
+	//   hash = (hash ^ type) * XXH_PRIME32_3
+	//   bucket = (hash * bucketCount) >> 32
+	//
+	// Every bit of the TGI ends up affecting the high bits of the hash, so the bucket is taken from those
+	// instead of using a modulo, which would mostly depend on the low bits.
+	//
 	// On my 11GB plugins folder it distributes as well as memo's PersistResourceKeyHash or MSVC's default FNV-1a
 	// at roughly a third to half of their cost, and only about 1 ns more than the original (bad) hash.
 	uint32_t __fastcall GetBucketIndex(const uint32_t* tgi, uint32_t bucketCount)
@@ -51,6 +59,7 @@ namespace
 		hash ^= tgi[0];
 		hash *= 0xC2B2AE3D;
 
+		// Scales the hash down to [0, bucketCount) using a single 32x32 -> 64-bit MUL instead of a DIV
 		return static_cast<uint32_t>(__emulu(hash, bucketCount) >> 32);
 	}
 
