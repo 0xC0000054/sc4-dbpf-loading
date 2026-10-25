@@ -47,7 +47,7 @@ It supports to following options (only 1 can be used at a time):
 
 # License
 
-This project is licensed under the terms of the GNU Lesser General Public License version 3.0.    
+This project is licensed under the terms of the GNU Lesser General Public License version 2.1 or (at your option) any later version published by the Free Software Foundation.    
 See [LICENSE.txt](LICENSE.txt) for more information.
 
 ## 3rd party code
