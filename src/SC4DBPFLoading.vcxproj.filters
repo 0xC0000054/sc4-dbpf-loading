@@ -93,6 +93,9 @@
     <ClCompile Include="Patcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DBPFIndexHashPatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="LooseSC4PluginScanPatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -186,6 +189,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Patcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DBPFIndexHashPatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="qfs-decoder\QFSDecoder.h">

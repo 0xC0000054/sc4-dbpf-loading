@@ -20,6 +20,7 @@
 
 #include "version.h"
 #include "cRZFileHooks.h"
+#include "DBPFIndexHashPatch.h"
 #include "DebugUtil.h"
 #include "Logger.h"
 #include "LooseSC4PluginScanPatch.h"
@@ -296,6 +297,7 @@ namespace
 			InstallDBPFOpenFindHeaderRecordHook();
 			InstallMissingPluginDialogHexPatch();
 			cRZFileHooks::Install();
+			DBPFIndexHashPatch::Install();
 			QFSDecoderHooks::Install();
 			LooseSC4PluginScanPatch::Install();
 
