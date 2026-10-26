@@ -22,12 +22,15 @@
 #include "cIGZPersistResourceKeyList.h"
 #include "cRZBaseUnknown.h"
 #include "PersistResourceKeyHash.h"
-#include <deque>
+#include <vector>
 
 class PersistResourceKeyList final : public cRZBaseUnknown, public cIGZPersistResourceKeyList
 {
 public:
-	using container = std::deque<cGZPersistResourceKey>;
+	// MSVC's std::deque allocates a separate block for each element larger than 8 bytes.
+	// BaseMultiPackedFile reuses one list for every file, so a vector only has to grow
+	// for the largest file, and EraseAll keeps its capacity.
+	using container = std::vector<cGZPersistResourceKey>;
 
 	PersistResourceKeyList();
 
