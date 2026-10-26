@@ -25,6 +25,12 @@
     <Filter Include="Source Files\multi-packed-file">
       <UniqueIdentifier>{54c4dfb1-e86d-4c69-a23e-f883270b3af1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\qfs-decoder">
+      <UniqueIdentifier>{5d0c3f0e-8a52-4b7e-9c1d-2f6a4e9b7c31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\qfs-decoder">
+      <UniqueIdentifier>{a3e8b1d4-6f27-4c95-8e0a-7b2d9c4f1e68}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Logger.cpp">
@@ -95,6 +101,15 @@
     </ClCompile>
     <ClCompile Include="PathUtil.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="qfs-decoder\QFSDecoder.cpp">
+      <Filter>Source Files\qfs-decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="qfs-decoder\QFSDecoderAVX2.cpp">
+      <Filter>Source Files\qfs-decoder</Filter>
+    </ClCompile>
+    <ClCompile Include="qfs-decoder\QFSDecoderHooks.cpp">
+      <Filter>Source Files\qfs-decoder</Filter>
     </ClCompile>
     <ClCompile Include="multi-packed-file\BaseMultiPackedFile.cpp">
       <Filter>Source Files\multi-packed-file</Filter>
@@ -172,6 +187,12 @@
     </ClInclude>
     <ClInclude Include="Patcher.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="qfs-decoder\QFSDecoder.h">
+      <Filter>Header Files\qfs-decoder</Filter>
+    </ClInclude>
+    <ClInclude Include="qfs-decoder\QFSDecoderHooks.h">
+      <Filter>Header Files\qfs-decoder</Filter>
     </ClInclude>
     <ClInclude Include="LooseSC4PluginScanPatch.h">
       <Filter>Header Files</Filter>
