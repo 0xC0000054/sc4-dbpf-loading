@@ -21,7 +21,7 @@
 #include "cRZFileHooks.h"
 #include "cIGZString.h"
 #include "DebugUtil.h"
-#include "GZStringConvert.h"
+#include "StringConversion.h"
 #include "Logger.h"
 #include "Patcher.h"
 #include "PathUtil.h"
@@ -64,7 +64,7 @@ namespace
 
 	std::wstring GetUtf16FilePath(const cIGZString& utf8Path)
 	{
-		std::wstring utf16Path = GZStringConvert::ToUtf16(utf8Path);
+		std::wstring utf16Path = StringConversion::ToUtf16(utf8Path);
 
 		if (PathUtil::MustAddExtendedPathPrefix(utf16Path))
 		{

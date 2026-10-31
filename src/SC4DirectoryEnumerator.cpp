@@ -19,7 +19,7 @@
  */
 
 #include "SC4DirectoryEnumerator.h"
-#include "GZStringConvert.h"
+#include "StringConversion.h"
 #include "PathUtil.h"
 #include "StringViewUtil.h"
 #include <format>
@@ -39,7 +39,7 @@ namespace
 	{
 		const std::wstring nativePath = PathUtil::Combine(PathUtil::RemoveExtendedPathPrefix(root), fileName);
 
-		return GZStringConvert::FromUtf16(nativePath);
+		return StringConversion::FromUtf16(nativePath);
 	}
 
 	void ThrowExceptionForWin32Error(
@@ -47,7 +47,7 @@ namespace
 		DWORD error,
 		const std::wstring& fileName)
 	{
-		const cRZBaseString fileNameAsUtf8 = GZStringConvert::FromUtf16(fileName);
+		const cRZBaseString fileNameAsUtf8 = StringConversion::FromUtf16(fileName);
 
 		const std::string message = std::format(
 			"{0} failed with error code {1}. Path={2}",
@@ -181,7 +181,7 @@ std::vector<cRZBaseString> SC4DirectoryEnumerator::GetDatFilesRecurseSubdirector
 {
 	std::vector<cRZBaseString> files;
 
-	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, files, DatFilesPredicate);
+	NativeScanDirectoryRecursive(StringConversion::ToUtf16(root), true, files, DatFilesPredicate);
 
 	return files;
 }
@@ -190,7 +190,7 @@ std::vector<cRZBaseString> SC4DirectoryEnumerator::GetLooseSC4FilesRecurseSubdir
 {
 	std::vector<cRZBaseString> files;
 
-	NativeScanDirectoryRecursive(GZStringConvert::ToUtf16(root), true, files, SC4FilesPredicate);
+	NativeScanDirectoryRecursive(StringConversion::ToUtf16(root), true, files, SC4FilesPredicate);
 
 	return files;
 }

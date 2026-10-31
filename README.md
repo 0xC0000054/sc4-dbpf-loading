@@ -54,7 +54,7 @@ See [LICENSE.txt](LICENSE.txt) for more information.
 
 [gzcom-dll](https://github.com/nsgomez/gzcom-dll/tree/master) - LGPL 2.1 or later License.    
 [SC4Fix](https://github.com/nsgomez/sc4fix) - MIT License.     
-[.NET runtime](https://github.com/dotnet/runtime) The `Stopwatch` class is based on `System.Diagnostics.Stopwatch`, MIT License.    
+[sc4-dll-utilities](https://github.com/0xC0000054/sc4-dll-utilities) - LGPL 2.1 or later License.    
 [Detours](https://github.com/microsoft/Detours) - MIT License    
 [Windows Implementation Library](https://github.com/microsoft/wil) - MIT License    
 [Boost.Algorithm](https://www.boost.org/doc/libs/1_84_0/libs/algorithm/doc/html/index.html) - Boost Software License, Version 1.0.    

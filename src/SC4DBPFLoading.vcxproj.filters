@@ -31,11 +31,14 @@
     <Filter Include="Source Files\qfs-decoder">
       <UniqueIdentifier>{a3e8b1d4-6f27-4c95-8e0a-7b2d9c4f1e68}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\sc4-dll-utilities">
+      <UniqueIdentifier>{e06efc95-e8b2-4178-bb29-ef0f0b0c265f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sc4-dll-utilities">
+      <UniqueIdentifier>{8d1245d7-4bcb-40c2-9e8e-0d66060c5597}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Logger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZBaseString.cpp">
       <Filter>Source Files\GZCOM</Filter>
     </ClCompile>
@@ -63,19 +66,7 @@
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\SC4UI.cpp">
       <Filter>Source Files\GZCOM</Filter>
     </ClCompile>
-    <ClCompile Include="SC4VersionDetection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DBPFLoadingDllDirector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Stopwatch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="StringViewUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GZStringConvert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PersistResourceKeyList.cpp">
@@ -87,12 +78,6 @@
     <ClCompile Include="cRZFileHooks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DebugUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Patcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DBPFIndexHashPatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -101,9 +86,6 @@
     </ClCompile>
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZBaseUnknown.cpp">
       <Filter>Source Files\GZCOM</Filter>
-    </ClCompile>
-    <ClCompile Include="PathUtil.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="qfs-decoder\QFSDecoder.cpp">
       <Filter>Source Files\qfs-decoder</Filter>
@@ -123,11 +105,35 @@
     <ClCompile Include="multi-packed-file\SC4PluginMultiPackedFile.cpp">
       <Filter>Source Files\multi-packed-file</Filter>
     </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\DebugUtil.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\FileSystem.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\Logger.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\Patcher.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\PathUtil.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\SC4VersionDetection.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\StringConversion.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\StringViewUtil.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\Utf8TextOFStream.cpp">
+      <Filter>Source Files\sc4-dll-utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Logger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -137,9 +143,6 @@
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\StringResourceManager.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
-    <ClInclude Include="SC4VersionDetection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cIGZCOM.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
@@ -148,9 +151,6 @@
     </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\GZServPtrs.h">
       <Filter>Header Files\GZCOM</Filter>
-    </ClInclude>
-    <ClInclude Include="Stopwatch.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cIGZPersistDBSegment.h">
       <Filter>Header Files\GZCOM</Filter>
@@ -164,14 +164,8 @@
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cIGZPersistResourceKeyList.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
-    <ClInclude Include="StringViewUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cIGZPersistDBSegmentMultiPackedFiles.h">
       <Filter>Header Files\GZCOM</Filter>
-    </ClInclude>
-    <ClInclude Include="GZStringConvert.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PersistResourceKeyHash.h">
       <Filter>Header Files</Filter>
@@ -183,12 +177,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cRZFileHooks.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Patcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DBPFIndexHashPatch.h">
@@ -209,9 +197,6 @@
     <ClInclude Include="PersistResourceKeyBoostHash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PathUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="multi-packed-file\BaseMultiPackedFile.h">
       <Filter>Header Files\multi-packed-file</Filter>
     </ClInclude>
@@ -223,6 +208,27 @@
     </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cRZBaseString.h">
       <Filter>Header Files\GZCOM</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\DebugUtil.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\Logger.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\Patcher.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\PathUtil.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\Stopwatch.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\StringConversion.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\StringViewUtil.h">
+      <Filter>Header Files\sc4-dll-utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

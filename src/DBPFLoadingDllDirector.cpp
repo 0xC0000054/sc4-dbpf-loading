@@ -22,6 +22,7 @@
 #include "cRZFileHooks.h"
 #include "DBPFIndexHashPatch.h"
 #include "DebugUtil.h"
+#include "FileSystem.h"
 #include "Logger.h"
 #include "LooseSC4PluginScanPatch.h"
 #include "DatMultiPackedFile.h"
@@ -52,30 +53,13 @@
 #include <filesystem>
 #include <memory>
 #include <string>
-#include <Windows.h>
-#include "wil/resource.h"
-#include "wil/win32_helpers.h"
-
-#include "boost/algorithm/string.hpp"
-#include "detours/detours.h"
 
 static constexpr uint32_t kDBPFLoadingDirectorID = 0x87A74BF8;
-
-static constexpr std::string_view PluginLogFileName = "SC4DBPFLoading.log";
 
 using namespace std::literals::string_view_literals;
 
 namespace
 {
-	std::filesystem::path GetDllFolderPath()
-	{
-		wil::unique_cotaskmem_string modulePath = wil::GetModuleFileNameW(wil::GetModuleInstanceHandle());
-
-		std::filesystem::path temp(modulePath.get());
-
-		return temp.parent_path();
-	}
-
 	void DisableResourceLoadDebuggingCode()
 	{
 		Logger& logger = Logger::GetInstance();
@@ -224,7 +208,7 @@ namespace
 
 		char buffer[256]{};
 
-		std::snprintf(buffer, sizeof(buffer), "Loaded resources in %lld ms", sw.ElapsedMilliseconds());
+		std::snprintf(buffer, sizeof(buffer), "Loaded resources in %lld ms", sw.GetElapsed<Stopwatch::TimeFormat::Milliseconds>());
 
 		MessageBoxA(nullptr, buffer, "SC4DBPFLoading", 0);
 
@@ -289,7 +273,7 @@ namespace
 	{
 		Logger& logger = Logger::GetInstance();
 
-		const uint16_t gameVersion = SC4VersionDetection::GetInstance().GetGameVersion();
+		const uint16_t gameVersion = SC4VersionDetection::GetGameVersion();
 
 		if (gameVersion == 641)
 		{
@@ -339,13 +323,8 @@ public:
 		AddCls(GZCLSID_cGZPersistDBSegmentMultiPackedFiles, CreateDatMultiPackedFile);
 		AddCls(GZCLSID_SC4PluginMultiPackedFile, CreateSC4PluginMultiPackedFile);
 
-		std::filesystem::path dllFolderPath = GetDllFolderPath();
-
-		std::filesystem::path logFilePath = dllFolderPath;
-		logFilePath /= PluginLogFileName;
-
 		Logger& logger = Logger::GetInstance();
-		logger.Init(logFilePath, LogLevel::Error);
+		logger.Init(FileSystem::GetDllLogFilePath(), LogLevel::Error);
 		logger.WriteLogFileHeader("SC4DBPFLoading v" PLUGIN_VERSION_STR);
 	}
 
