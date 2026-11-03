@@ -112,6 +112,7 @@ namespace
 		Read = 1,
 		ReadWrite = 2,
 	};
+	DEFINE_ENUM_FLAG_OPERATORS(RZFileShareMode);
 
 	class cRZFileProxy
 	{
@@ -198,17 +199,14 @@ namespace
 					DWORD dwShareMode = 0;
 					DWORD dwCreationDisposition = 0;
 
-					switch (accessMode)
+					if ((accessMode & RZFileAccessMode::Read) == RZFileAccessMode::Read)
 					{
-					case RZFileAccessMode::Read:
-						dwDesiredAccess = GENERIC_READ;
-						break;
-					case RZFileAccessMode::Write:
-						dwDesiredAccess = GENERIC_WRITE;
-						break;
-					case RZFileAccessMode::ReadWrite:
-						dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
-						break;
+						dwDesiredAccess |= GENERIC_READ;
+					}
+
+					if ((accessMode & RZFileAccessMode::Write) == RZFileAccessMode::Write)
+					{
+						dwDesiredAccess |= GENERIC_WRITE;
 					}
 
 					switch (creationMode)
@@ -230,14 +228,14 @@ namespace
 						break;
 					}
 
-					switch (shareMode)
+					if ((shareMode & RZFileShareMode::Read) == RZFileShareMode::Read)
 					{
-					case RZFileShareMode::Read:
-						dwShareMode = FILE_SHARE_READ;
-						break;
-					case RZFileShareMode::ReadWrite:
-						dwShareMode = FILE_SHARE_READ | FILE_SHARE_WRITE;
-						break;
+						dwShareMode |= FILE_SHARE_READ;
+					}
+
+					if ((shareMode & RZFileShareMode::ReadWrite) == RZFileShareMode::ReadWrite)
+					{
+						dwShareMode |= FILE_SHARE_READ | FILE_SHARE_WRITE;
 					}
 
 					HANDLE hFile = CreateFileW(
