@@ -60,35 +60,6 @@ using namespace std::literals::string_view_literals;
 
 namespace
 {
-	void DisableResourceLoadDebuggingCode()
-	{
-		Logger& logger = Logger::GetInstance();
-		try
-		{
-			// The method that scans for plugins on startup (cSC4App::UpdateResources) has some debugging code that
-			// always runs when the extra cheats plugin is installed. The extra cheats plugin sets a value to enable
-			// the cheat codes and other internal debug functionality that Maxis used when developing the game.
-			// This resource debug code appears to have possibly been doing some kind of logging in debug builds of
-			// of the game, but it just wastes CPU time in the retail builds.
-			//
-			// We modify that check to make the game think that the internal debug mode is always disabled by
-			// replacing the conditional short jump that is taken when the pointer is null with an unconditional
-			// short jump.
-			//
-			// Original instruction: 0x74 (JZ rel8).
-			// New instruction: 0xEB (JMP rel8).
-			Patcher::OverwriteMemory(0x4572CE, static_cast<uint8_t>(0xEB));
-			logger.WriteLine(LogLevel::Info, "Disabled the built-in DBPF loading debug code.");
-		}
-		catch (const std::exception& e)
-		{
-			logger.WriteLineFormatted(
-				LogLevel::Error,
-				"Failed to disable the built-in DBPF loading debug code: %s",
-				e.what());
-		}
-	}
-
 	static int32_t __fastcall HookedFindHeaderRecord(void* thisPtr, void* edxUnused)
 	{
 		// When SC4 reads a DBPF file and does not find a valid header, it will
@@ -277,7 +248,6 @@ namespace
 
 		if (gameVersion == 641)
 		{
-			DisableResourceLoadDebuggingCode();
 			InstallDBPFOpenFindHeaderRecordHook();
 			InstallMissingPluginDialogHexPatch();
 			cRZFileHooks::Install();
