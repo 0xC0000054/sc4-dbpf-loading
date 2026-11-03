@@ -240,6 +240,15 @@ namespace
 					}
 					else
 					{
+						switch (creationMode)
+						{
+						case RZFileCreationMode::CreateAlways:
+						case RZFileCreationMode::OpenAlways:
+							// Update the error code in case the file already exists.
+							SetRZFileErrorCode(pThis, GetLastError());
+							break;
+						}
+
 						pThis->fileHandle = hFile;
 						pThis->isOpen = true;
 						pThis->accessMode = accessMode;
