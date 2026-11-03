@@ -67,17 +67,17 @@ bool BaseMultiPackedFile::QueryInterface(uint32_t riid, void** ppvObj)
 		return true;
 	}
 
-	return cRZBaseUnknown::QueryInterface(riid, ppvObj);
+	return cRZUnknown::QueryInterface(riid, ppvObj);
 }
 
 uint32_t BaseMultiPackedFile::AddRef()
 {
-	return cRZBaseUnknown::AddRef();
+	return cRZUnknown::AddRef();
 }
 
 uint32_t BaseMultiPackedFile::Release()
 {
-	return cRZBaseUnknown::Release();
+	return cRZUnknown::Release();
 }
 
 bool BaseMultiPackedFile::Init()

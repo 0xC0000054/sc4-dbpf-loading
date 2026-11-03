@@ -22,7 +22,7 @@
 #include "cIGZPersistDBSegment.h"
 #include "cIGZPersistDBSegmentMultiPackedFiles.h"
 #include "cRZBaseString.h"
-#include "cRZBaseUnknown.h"
+#include "cRZUnknown.h"
 #include "PersistResourceKeyBoostHash.h"
 #include "PersistResourceKeyHash.h"
 #include "boost/unordered/unordered_flat_map.hpp"
@@ -32,7 +32,7 @@
 class cIGZCOM;
 class PersistResourceKeyList;
 
-class BaseMultiPackedFile : public cRZBaseUnknown, public cIGZPersistDBSegment, public cIGZPersistDBSegmentMultiPackedFiles
+class BaseMultiPackedFile : public cRZUnknown, public cIGZPersistDBSegment, public cIGZPersistDBSegmentMultiPackedFiles
 {
 protected:
 	/**

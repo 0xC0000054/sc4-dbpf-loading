@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZBaseString.cpp" />
-    <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZBaseUnknown.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZBaseVariant.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZCOMDllDirector.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZMessage2.cpp" />

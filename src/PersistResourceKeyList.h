@@ -20,11 +20,11 @@
 
 #pragma once
 #include "cIGZPersistResourceKeyList.h"
-#include "cRZBaseUnknown.h"
+#include "cRZUnknown.h"
 #include "PersistResourceKeyHash.h"
 #include <vector>
 
-class PersistResourceKeyList final : public cRZBaseUnknown, public cIGZPersistResourceKeyList
+class PersistResourceKeyList final : public cRZUnknown, public cIGZPersistResourceKeyList
 {
 public:
 	// MSVC's std::deque allocates a separate block for each element larger than 8 bytes.
