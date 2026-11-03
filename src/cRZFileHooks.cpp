@@ -176,7 +176,11 @@ namespace
 		{
 			const SC4String& utf8FilePath = pThis->name;
 
-			if (utf8FilePath.Strlen() > 0)
+			if (utf8FilePath.Strlen() == 0)
+			{
+				SetRZFileErrorCode(pThis, ERROR_PATH_NOT_FOUND);
+			}
+			else
 			{
 				try
 				{
@@ -213,6 +217,8 @@ namespace
 					case RZFileCreationMode::TruncateExisting:
 						dwCreationDisposition = TRUNCATE_EXISTING;
 						break;
+					default:
+						return false;
 					}
 
 					if ((shareMode & RZFileShareMode::Read) == RZFileShareMode::Read)
