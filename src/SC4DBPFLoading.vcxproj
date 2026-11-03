@@ -18,7 +18,9 @@
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZMessage2Standard.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cS3DVector3.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cSCBaseProperty.cpp" />
+    <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\SC4String.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\SC4UI.cpp" />
+    <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\STLPORTCharString.cpp" />
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\StringResourceManager.cpp" />
     <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\DebugUtil.cpp" />
     <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\FileSystem.cpp" />

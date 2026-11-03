@@ -21,10 +21,12 @@
 #include "cRZFileHooks.h"
 #include "cIGZString.h"
 #include "DebugUtil.h"
-#include "StringConversion.h"
 #include "Logger.h"
 #include "Patcher.h"
 #include "PathUtil.h"
+#include "SC4String.h"
+#include "SC4Vector.h"
+#include "StringConversion.h"
 #include <stdexcept>
 
 #define NOMINMAX
@@ -75,19 +77,6 @@ namespace
 		return utf16Path;
 	}
 
-	class cRZString
-	{
-	public:
-		const cIGZString* AsIGZString() const
-		{
-			return reinterpret_cast<const cIGZString*>(this);
-		}
-	private:
-		void* vtable;
-		intptr_t stdStringFields[3];
-		uint32_t refCount;
-	};
-
 	enum class RZFileAccessMode : uint32_t
 	{
 		None = 0,
@@ -118,25 +107,23 @@ namespace
 	{
 	public:
 		void* vtable;
-		cRZString nameRZStr;
+		SC4String name;
 		bool isOpen;
 		HANDLE fileHandle;
 		RZFileAccessMode accessMode;
 		RZFileCreationMode creationMode;
 		RZFileShareMode shareMode;
-		intptr_t unknown2;
+		uint32_t refCount;
 		uint32_t fileIOError;
-		intptr_t unknown3[5];
+		SC4String unknown1;
 		uint32_t currentFilePosition;
 		uint32_t position;
 		uint32_t maxReadBufferSize;
-		void* pReadBuffer;
-		intptr_t unknown4[2];
+		SC4Vector<uint8_t> readBuffer;
 		uint32_t readBufferOffset;
 		uint32_t readBufferLength;
 		uint32_t maxWriteBufferSize;
-		void* pWriteBuffer;
-		intptr_t unknown5[2];
+		SC4Vector<uint8_t> writeBuffer;
 		uint32_t writeBufferOffset;
 		uint32_t writeBufferLength;
 	};
@@ -187,13 +174,13 @@ namespace
 		}
 		else
 		{
-			const cIGZString* utf8FilePath = pThis->nameRZStr.AsIGZString();
+			const SC4String& utf8FilePath = pThis->name;
 
-			if (utf8FilePath->Strlen() > 0)
+			if (utf8FilePath.Strlen() > 0)
 			{
 				try
 				{
-					const std::wstring utf16Path = GetUtf16FilePath(*utf8FilePath);
+					const std::wstring utf16Path = GetUtf16FilePath(utf8FilePath);
 
 					DWORD dwDesiredAccess = 0;
 					DWORD dwShareMode = 0;
@@ -295,7 +282,7 @@ namespace
 			"HookedReadWithCount: %u bytes requested, position: %u, name: %s",
 			byteCount,
 			pThis->currentFilePosition + (pThis->currentFilePosition - pThis->readBufferOffset),
-			reinterpret_cast<cIGZString*>(&pThis->nameRZStr)->ToChar());
+			pThis->name.ToChar());
 #endif
 
 		if (pThis->isOpen)
