@@ -336,7 +336,7 @@ namespace
 					}
 					else
 					{
-						SetRZFileErrorCode(pThis, GetLastError());
+						byteCount = bytesRead;
 						pThis->position = SetFilePointer(pThis->fileHandle, 0, nullptr, FILE_CURRENT);
 					}
 					pThis->currentFilePosition = pThis->position;
