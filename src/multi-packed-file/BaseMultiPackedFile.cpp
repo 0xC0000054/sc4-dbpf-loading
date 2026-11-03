@@ -92,11 +92,12 @@ bool BaseMultiPackedFile::Init()
 
 bool BaseMultiPackedFile::Shutdown()
 {
-	if (initialized)
+	if (isOpen)
 	{
-		initialized = false;
+		Close();
 	}
 
+	initialized = false;
 	return true;
 }
 
@@ -152,6 +153,8 @@ bool BaseMultiPackedFile::IsOpen() const
 
 bool BaseMultiPackedFile::Close()
 {
+	auto lock = wil::EnterCriticalSection(&criticalSection);
+
 	if (isOpen)
 	{
 		isOpen = false;
@@ -169,7 +172,7 @@ bool BaseMultiPackedFile::Close()
 		tgiMap.clear();
 	}
 
-	return false;
+	return true;
 }
 
 bool BaseMultiPackedFile::Flush()
@@ -186,6 +189,11 @@ void BaseMultiPackedFile::GetPath(cIGZString& path) const
 bool BaseMultiPackedFile::SetPath(cIGZString const& path)
 {
 	auto lock = wil::EnterCriticalSection(&criticalSection);
+
+	if (isOpen)
+	{
+		return false;
+	}
 
 	folderPath.Copy(path);
 
@@ -225,20 +233,7 @@ uint32_t BaseMultiPackedFile::GetRecordCount(cIGZPersistResourceKeyFilter* filte
 
 	if (isOpen)
 	{
-		if (filter)
-		{
-			for (const auto& item : tgiMap)
-			{
-				if (filter->IsKeyIncluded(item.first))
-				{
-					count++;
-				}
-			}
-		}
-		else
-		{
-			count = static_cast<uint32_t>(tgiMap.size());
-		}
+		count = static_cast<uint32_t>(tgiMap.size());
 	}
 
 	return count;
@@ -307,12 +302,7 @@ bool BaseMultiPackedFile::TestForRecord(cGZPersistResourceKey const& key)
 
 	if (isOpen)
 	{
-		auto item = tgiMap.find(key);
-
-		if (item != tgiMap.end())
-		{
-			result = item->second->TestForRecord(key);
-		}
+		result = tgiMap.contains(key);
 	}
 
 	return result;
@@ -480,13 +470,9 @@ bool BaseMultiPackedFile::WriteRecord(cGZPersistResourceKey const& key, void* bu
 
 bool BaseMultiPackedFile::Init(uint32_t segmentID, cIGZString const& path, bool unknown2)
 {
-	if (!initialized)
-	{
-		initialized = true;
-
-		this->segmentID = segmentID;
-		this->folderPath.Copy(path);
-	}
+	SetSegmentID(segmentID);
+	SetPath(path);
+	Init();
 
 	return true;
 }
@@ -633,6 +619,7 @@ bool BaseMultiPackedFile::SetupGZPersistDBSegment(
 				if (pSegment->Open(true, false))
 				{
 					pSegment->AddRef();
+					pSegment->SetSegmentID(segmentID);
 
 					segments.push_back(pSegment);
 
