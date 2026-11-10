@@ -26,7 +26,9 @@
 #include "PathUtil.h"
 #include "SC4String.h"
 #include "SC4Vector.h"
+#include "ShellLinkHelper.h"
 #include "StringConversion.h"
+#include "StringViewUtil.h"
 #include <stdexcept>
 
 #define NOMINMAX
@@ -36,6 +38,8 @@
 
 namespace
 {
+	using namespace std::string_view_literals;
+
 	bool ReadFileBlocking(HANDLE hFile, uint8_t* buffer, uint32_t byteCount, uint32_t& bytesRead)
 	{
 		uint32_t remaining = byteCount;
@@ -75,6 +79,30 @@ namespace
 		}
 
 		return utf16Path;
+	}
+
+	std::wstring ResolveShellLink(const std::wstring& path)
+	{
+		if (StringViewUtil::EndsWithIgnoreCase(path, L".lnk"sv))
+		{
+			std::wstring target;
+
+			if (ShellLinkHelper::GetTargetPath(path, target))
+			{
+				return target;
+			}
+			else
+			{
+				cRZBaseString utf8Path = StringConversion::FromUtf16(PathUtil::RemoveExtendedPathPrefix(path));
+
+				Logger::GetInstance().WriteLineFormatted(
+					LogLevel::Error,
+					"Failed to get the ShellLink target from: %s",
+					utf8Path.ToChar());
+			}
+		}
+
+		return path;
 	}
 
 	enum class RZFileAccessMode : uint32_t
@@ -184,7 +212,7 @@ namespace
 			{
 				try
 				{
-					const std::wstring utf16Path = GetUtf16FilePath(utf8FilePath);
+					const std::wstring utf16Path = ResolveShellLink(GetUtf16FilePath(utf8FilePath));
 
 					DWORD dwDesiredAccess = 0;
 					DWORD dwShareMode = 0;

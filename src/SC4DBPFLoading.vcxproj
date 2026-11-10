@@ -46,6 +46,7 @@
     <ClCompile Include="qfs-decoder\QFSDecoderHooks.cpp" />
     <ClCompile Include="SC4DirectoryEnumerator.cpp" />
     <ClCompile Include="LooseSC4PluginScanPatch.cpp" />
+    <ClCompile Include="ShellLinkHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cIGZCOM.h" />
@@ -79,6 +80,7 @@
     <ClInclude Include="qfs-decoder\QFSDecoderHooks.h" />
     <ClInclude Include="SC4DirectoryEnumerator.h" />
     <ClInclude Include="LooseSC4PluginScanPatch.h" />
+    <ClInclude Include="ShellLinkHelper.h" />
     <ClInclude Include="version.h" />
   </ItemGroup>
   <ItemGroup>

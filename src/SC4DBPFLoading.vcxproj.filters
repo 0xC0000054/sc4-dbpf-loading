@@ -135,6 +135,9 @@
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\STLPORTCharString.cpp">
       <Filter>Source Files\GZCOM</Filter>
     </ClCompile>
+    <ClCompile Include="ShellLinkHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="version.h">
@@ -232,6 +235,9 @@
     </ClInclude>
     <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\StringViewUtil.h">
       <Filter>Header Files\sc4-dll-utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="ShellLinkHelper.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
