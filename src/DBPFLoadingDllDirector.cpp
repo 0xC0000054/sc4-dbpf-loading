@@ -119,7 +119,6 @@ namespace
 			rzStringThisPtr,
 			"%s 0x%08x",
 			pluginPackStr,
-			pluginPackID,
 			pluginPackID);
 
 		return result;
