@@ -131,6 +131,13 @@ namespace
 	};
 	DEFINE_ENUM_FLAG_OPERATORS(RZFileShareMode);
 
+	enum class RZFileSeekMode : uint32_t
+	{
+		Begin = 0,
+		Current = 1,
+		End = 2
+	};
+
 	class cRZFileProxy
 	{
 	public:
@@ -179,6 +186,9 @@ namespace
 			break;
 		}
 	}
+
+	typedef uint32_t(__thiscall* pfn_cRZFile_Seek)(cRZFileProxy* pThis, int32_t position, RZFileSeekMode mode);
+	static const pfn_cRZFile_Seek RealSeek = reinterpret_cast<pfn_cRZFile_Seek>(0x91895a);
 
 	typedef bool(__thiscall *pfn_cRZFile_Open)(
 		cRZFileProxy* pThis,
@@ -345,31 +355,111 @@ namespace
 				// following conditions are true:
 				//
 				// 1. The game's read buffer size is greater than 0 and less than the requested read size.
-				// 2. The file is at the correct position to start reading.
-				// 3. The game's existing read buffer is empty.
-				// 4. The write buffer is empty.
+				// 2. The write buffer is empty.
 				//
 				// If any of these conditions are not met, the call will be forwarded to the game's
 				// original read method.
 				if (byteCount >= pThis->maxReadBufferSize
 					&& pThis->maxReadBufferSize > 0
-					&& pThis->position == pThis->currentFilePosition
-					&& (pThis->currentFilePosition < pThis->readBufferOffset || (pThis->readBufferOffset + pThis->readBufferLength) <= pThis->currentFilePosition)
 					&& pThis->writeBufferLength == 0)
 				{
-					uint32_t bytesRead = 0;
-					if (ReadFileBlocking(pThis->fileHandle, static_cast<uint8_t*>(outBuffer), byteCount, bytesRead))
+					const uint32_t readBufferOffset = pThis->readBufferOffset;
+					const uint32_t readBufferLength = pThis->readBufferLength;
+					const uint32_t currentFilePosition = pThis->currentFilePosition;
+					const uint32_t readBufferFilePosition = readBufferOffset + readBufferLength;
+
+					// Our large read code covers the following cases:
+					// 1. The read buffer is empty and the file is at the correct position to start reading.
+					// 2. The large read request has partial data inside the read buffer.
+					//
+					// If any of these conditions are not met, the call will be forwarded to the game's
+					// original read method.
+
+					if (pThis->position == currentFilePosition
+						&& (currentFilePosition < readBufferOffset || readBufferFilePosition <= currentFilePosition))
 					{
-						byteCount = bytesRead;
-						pThis->position += bytesRead;
-						result = true;
+						// When there can't be any valid data in the read buffer,
+						// the request is filled directly from the file.
+						uint32_t bytesRead = 0;
+
+						if (ReadFileBlocking(pThis->fileHandle, static_cast<uint8_t*>(outBuffer), byteCount, bytesRead))
+						{
+							byteCount = bytesRead;
+							pThis->position += bytesRead;
+							result = true;
+						}
+						else
+						{
+							byteCount = bytesRead;
+							pThis->position = SetFilePointer(pThis->fileHandle, 0, nullptr, FILE_CURRENT);
+						}
+						pThis->currentFilePosition = pThis->position;
+					}
+					else if (readBufferLength > 0
+						&& currentFilePosition >= readBufferOffset
+						&& currentFilePosition <= readBufferFilePosition)
+					{
+						const uint32_t bufferedDataLength = (std::min)(byteCount, readBufferFilePosition - currentFilePosition);
+						const uint32_t byteCountAfterBufferEnd = byteCount - bufferedDataLength;
+
+						// If there is a partial read in the buffer and the remaining read length
+						// exceeds the size of the buffer, we handle the request as a blocking read.
+
+						if (byteCountAfterBufferEnd >= pThis->maxReadBufferSize)
+						{
+							// This recreates with cRZFile::FillReadBuffer does for partial reads, but
+							// with the remaining data being read directly from the file instead of
+							// double buffering it in 512 byte chunks.
+
+							std::memcpy(
+								outBuffer,
+								pThis->readBuffer.data() + (currentFilePosition - readBufferOffset),
+								bufferedDataLength);
+							pThis->currentFilePosition += bufferedDataLength;
+							pThis->readBufferOffset = 0;
+							pThis->readBufferLength = 0;
+
+							// Seek if necessary to synchronize the positions
+							// then read the remaining data as a blocking read.
+
+							if (pThis->position != pThis->currentFilePosition)
+							{
+								const uint32_t newPosition = RealSeek(pThis, pThis->currentFilePosition, RZFileSeekMode::Begin);
+
+								if (newPosition != pThis->currentFilePosition)
+								{
+									byteCount = bufferedDataLength;
+									return false;
+								}
+							}
+							uint32_t bytesRead = 0;
+
+							if (ReadFileBlocking(
+								pThis->fileHandle,
+								static_cast<uint8_t*>(outBuffer) + bufferedDataLength,
+								byteCountAfterBufferEnd,
+								bytesRead))
+							{
+								byteCount = bufferedDataLength + bytesRead;
+								pThis->position += bytesRead;
+								result = true;
+							}
+							else
+							{
+								byteCount = bufferedDataLength + bytesRead;
+								pThis->position = SetFilePointer(pThis->fileHandle, 0, nullptr, FILE_CURRENT);
+							}
+							pThis->currentFilePosition = pThis->position;
+						}
+						else
+						{
+							result = RealReadWithCount(pThis, outBuffer, byteCount);
+						}
 					}
 					else
 					{
-						byteCount = bytesRead;
-						pThis->position = SetFilePointer(pThis->fileHandle, 0, nullptr, FILE_CURRENT);
-					}
-					pThis->currentFilePosition = pThis->position;
+						result = RealReadWithCount(pThis, outBuffer, byteCount);
+					}					
 				}
 				else
 				{
