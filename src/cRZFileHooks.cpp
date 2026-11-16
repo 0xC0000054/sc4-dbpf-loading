@@ -131,7 +131,7 @@ namespace
 	};
 	DEFINE_ENUM_FLAG_OPERATORS(RZFileShareMode);
 
-	enum class RZFileSeekMode : uint32_t
+	enum class RZFileSeekOrigin : int32_t
 	{
 		Begin = 0,
 		Current = 1,
@@ -187,15 +187,18 @@ namespace
 		}
 	}
 
-	typedef uint32_t(__thiscall* pfn_cRZFile_Seek)(cRZFileProxy* pThis, int32_t position, RZFileSeekMode mode);
-	static const pfn_cRZFile_Seek RealSeek = reinterpret_cast<pfn_cRZFile_Seek>(0x91895a);
-
 	typedef bool(__thiscall *pfn_cRZFile_Open)(
 		cRZFileProxy* pThis,
 		RZFileAccessMode accessMode,
 		RZFileCreationMode creationMode,
 		RZFileShareMode shareMode);
 	static pfn_cRZFile_Open RealOpen = nullptr;
+
+	typedef bool(__thiscall* pfn_cRZFile_ReadWithCount)(cRZFileProxy* pThis, void* outBuffer, uint32_t& byteCount);
+	static pfn_cRZFile_ReadWithCount RealReadWithCount = nullptr;
+
+	typedef uint32_t(__thiscall* pfn_cRZFile_Seek)(cRZFileProxy* pThis, int32_t position, RZFileSeekOrigin origin);
+	static pfn_cRZFile_Seek RealSeek = nullptr;
 
 	bool __fastcall HookedOpen(
 		cRZFileProxy* pThis,
@@ -323,10 +326,6 @@ namespace
 		return result;
 	}
 
-	typedef bool(__thiscall* pfn_cRZFile_ReadWithCount)(cRZFileProxy* pThis, void* outBuffer, uint32_t& byteCount);
-
-	static pfn_cRZFile_ReadWithCount RealReadWithCount = nullptr;
-
 	bool __fastcall HookedReadWithCount(cRZFileProxy* pThis, void* edxUnused, void* outBuffer, uint32_t& byteCount)
 	{
 		bool result = false;
@@ -424,7 +423,7 @@ namespace
 
 							if (pThis->position != pThis->currentFilePosition)
 							{
-								const uint32_t newPosition = RealSeek(pThis, pThis->currentFilePosition, RZFileSeekMode::Begin);
+								const uint32_t newPosition = RealSeek(pThis, pThis->currentFilePosition, RZFileSeekOrigin::Begin);
 
 								if (newPosition != pThis->currentFilePosition)
 								{
@@ -470,8 +469,31 @@ namespace
 
 		return result;
 	}
-}
 
+	uint32_t __fastcall HookedSeek(cRZFileProxy* pThis, void* edxUnused, int32_t position, RZFileSeekOrigin origin)
+	{
+		uint32_t newPosition = UINT_MAX;
+
+		if (pThis->isOpen)
+		{
+			if (pThis->writeBufferLength == 0
+				&& position >= 0
+				&& position == pThis->currentFilePosition
+				&& position == pThis->position
+				&& origin == RZFileSeekOrigin::Begin)
+			{
+				// If the game is seeking to the current file position, we can skip the seek call entirely.
+				newPosition = position;
+			}
+			else
+			{
+				newPosition = RealSeek(pThis, position, origin);
+			}
+		}
+
+		return newPosition;
+	}
+}
 
 void cRZFileHooks::Install()
 {
@@ -481,6 +503,7 @@ void cRZFileHooks::Install()
 	{
 		RealOpen = reinterpret_cast<pfn_cRZFile_Open>(0x919B00);
 		RealReadWithCount = reinterpret_cast<pfn_cRZFile_ReadWithCount>(0x9192A9);
+		RealSeek = reinterpret_cast<pfn_cRZFile_Seek>(0x91895A);
 
 		DetourRestoreAfterWith();
 
@@ -488,6 +511,7 @@ void cRZFileHooks::Install()
 		DetourUpdateThread(GetCurrentThread());
 		DetourAttach(&(PVOID&)RealOpen, HookedOpen);
 		DetourAttach(&(PVOID&)RealReadWithCount, HookedReadWithCount);
+		DetourAttach(&(PVOID&)RealSeek, HookedSeek);
 		LONG error = DetourTransactionCommit();
 
 		if (error == NO_ERROR)
