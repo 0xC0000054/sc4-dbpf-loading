@@ -94,7 +94,7 @@ namespace
 		{
 		case 3: destination[2] = source[2]; [[fallthrough]];
 		case 2: destination[1] = source[1]; [[fallthrough]];
-		case 1: destination[0] = source[0];
+		case 1: destination[0] = source[0]; [[fallthrough]];
 		default: break;
 		}
 		destination += count;
@@ -138,7 +138,7 @@ namespace
 		{
 		case 3: destination[2] = source[2]; [[fallthrough]];
 		case 2: destination[1] = source[1]; [[fallthrough]];
-		case 1: destination[0] = source[0];
+		case 1: destination[0] = source[0]; [[fallthrough]];
 		default: break;
 		}
 	}
