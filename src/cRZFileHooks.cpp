@@ -200,6 +200,9 @@ namespace
 	typedef uint32_t(__thiscall* pfn_cRZFile_Seek)(cRZFileProxy* pThis, int32_t position, RZFileSeekOrigin origin);
 	static pfn_cRZFile_Seek RealSeek = nullptr;
 
+	typedef bool(__thiscall* pfn_cRZFile_WriteWithCount)(cRZFileProxy* pThis, void const* buffer, uint32_t& byteCount);
+	static pfn_cRZFile_WriteWithCount RealWriteWithCount = nullptr;
+
 	bool __fastcall HookedOpen(
 		cRZFileProxy* pThis,
 		void* edxUnused,
@@ -493,6 +496,119 @@ namespace
 
 		return newPosition;
 	}
+
+	bool WriteData(cRZFileProxy* pThis, const void* buffer, uint32_t byteCount)
+	{
+		bool result = false;
+
+		// Write the data to disk and update the class state using the same pattern as
+		// cRZFile::WriteWithCount/cRZFile::FillWriteBuffer/cRZFile::FlushWriteBuffer.
+
+		const DWORD numberOfBytesToWrite = byteCount;
+		DWORD bytesWritten = 0;
+
+		if (WriteFile(pThis->fileHandle, buffer, numberOfBytesToWrite, &bytesWritten, nullptr))
+		{
+			pThis->position += bytesWritten;
+			result = true;
+		}
+		else
+		{
+			pThis->position = SetFilePointer(pThis->fileHandle, 0, nullptr, FILE_CURRENT);
+		}
+		pThis->writeBufferOffset = pThis->position;
+		pThis->writeBufferLength = 0;
+		pThis->currentFilePosition = pThis->position;
+
+		return result;
+	}
+
+	bool __fastcall HookedWriteWithCount(cRZFileProxy* pThis, void* edxUnused, void const* buffer, uint32_t& byteCount)
+	{
+		bool result = false;
+
+#if 0
+		DebugUtil::PrintLineToDebugOutputFormatted(
+			"HookedWriteWithCount: Writing %u bytes, position: %u, name: %s",
+			byteCount,
+			pThis->currentFilePosition,
+			pThis->name.ToChar());
+#endif
+
+		if (pThis->isOpen)
+		{
+			if (byteCount == 0)
+			{
+				result = true;
+			}
+			else
+			{
+				if (byteCount >= pThis->maxWriteBufferSize
+					&& pThis->maxWriteBufferSize > 0)
+				{
+					if (pThis->readBufferLength > 0)
+					{
+						// Discard the read buffer in the same way cRZFile::WriteWithCount does.
+						pThis->readBufferOffset = 0;
+						pThis->readBufferLength = 0;
+						HookedSeek(pThis, nullptr, pThis->currentFilePosition, RZFileSeekOrigin::Begin);
+					}
+
+					const uint32_t writeBufferOffset = pThis->writeBufferOffset;
+					const uint32_t writeBufferLength = pThis->writeBufferLength;
+					const uint32_t currentFilePosition = pThis->currentFilePosition;
+					const uint32_t virtualFilePosition = pThis->position;
+
+					if (writeBufferLength > 0)
+					{
+#if 0
+						DebugUtil::PrintLineToDebugOutputFormatted(
+							"HookedWriteWithCount: Large write with partial write buffer - file position: 0x%08x, virtual position: 0x%08x, write buffer: [ offset: 0x%08x, length: %u ], count: %u, name: %s",
+							currentFilePosition,
+							virtualFilePosition,
+							writeBufferOffset,
+							writeBufferLength,
+							byteCount,
+							pThis->name.ToChar());
+#endif // 0
+
+						// Any buffered data must be written first, then we write the remaining data
+						// using the same code path as an empty buffer.
+						// WriteData will have updated the writeBufferOffset field, so we can skip it.
+
+						if (!WriteData(pThis, pThis->writeBuffer.data(), writeBufferLength))
+						{
+							return false;
+						}
+					}
+					else
+					{
+#if 0
+						DebugUtil::PrintLineToDebugOutputFormatted(
+							"HookedWriteWithCount: Large write with empty write buffer - file position: 0x%08x, virtual position: 0x%08x, count: %u, name: %s",
+							currentFilePosition,
+							virtualFilePosition,
+							byteCount,
+							pThis->name.ToChar());
+#endif // 0
+						// Update the write buffer offset.
+						// It doesn't appear that anything actually reads it, but just in case we match what the
+						// game does when the write buffer length is zero.
+
+						pThis->writeBufferOffset = pThis->position;
+					}
+
+					result = WriteData(pThis, buffer, byteCount);
+				}
+				else
+				{
+					result = RealWriteWithCount(pThis, buffer, byteCount);
+				}
+			}
+		}
+
+		return result;
+	}
 }
 
 void cRZFileHooks::Install()
@@ -504,6 +620,7 @@ void cRZFileHooks::Install()
 		RealOpen = reinterpret_cast<pfn_cRZFile_Open>(0x919B00);
 		RealReadWithCount = reinterpret_cast<pfn_cRZFile_ReadWithCount>(0x9192A9);
 		RealSeek = reinterpret_cast<pfn_cRZFile_Seek>(0x91895A);
+		RealWriteWithCount = reinterpret_cast<pfn_cRZFile_WriteWithCount>(0x9193E3);
 
 		DetourRestoreAfterWith();
 
@@ -512,6 +629,7 @@ void cRZFileHooks::Install()
 		DetourAttach(&(PVOID&)RealOpen, HookedOpen);
 		DetourAttach(&(PVOID&)RealReadWithCount, HookedReadWithCount);
 		DetourAttach(&(PVOID&)RealSeek, HookedSeek);
+		DetourAttach(&(PVOID&)RealWriteWithCount, HookedWriteWithCount);
 		LONG error = DetourTransactionCommit();
 
 		if (error == NO_ERROR)
