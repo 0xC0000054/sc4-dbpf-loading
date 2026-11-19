@@ -38,6 +38,7 @@
     <ClCompile Include="multi-packed-file\DatMultiPackedFile.cpp" />
     <ClCompile Include="multi-packed-file\SC4PluginMultiPackedFile.cpp" />
     <ClCompile Include="PersistResourceKeyList.cpp" />
+    <ClCompile Include="Preferences.cpp" />
     <ClCompile Include="qfs-decoder\QFSDecoder.cpp" />
     <ClCompile Include="qfs-decoder\QFSDecoderAVX2.cpp">
       <AdditionalOptions>/arch:AVX2 %(AdditionalOptions)</AdditionalOptions>
@@ -76,6 +77,7 @@
     <ClInclude Include="PersistResourceKeyBoostHash.h" />
     <ClInclude Include="PersistResourceKeyHash.h" />
     <ClInclude Include="PersistResourceKeyList.h" />
+    <ClInclude Include="Preferences.h" />
     <ClInclude Include="qfs-decoder\QFSDecoder.h" />
     <ClInclude Include="qfs-decoder\QFSDecoderHooks.h" />
     <ClInclude Include="SC4DirectoryEnumerator.h" />

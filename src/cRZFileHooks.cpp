@@ -24,6 +24,7 @@
 #include "Logger.h"
 #include "Patcher.h"
 #include "PathUtil.h"
+#include "Preferences.h"
 #include "SC4String.h"
 #include "SC4Vector.h"
 #include "ShellLinkHelper.h"
@@ -629,7 +630,12 @@ void cRZFileHooks::Install()
 		DetourAttach(&(PVOID&)RealOpen, HookedOpen);
 		DetourAttach(&(PVOID&)RealReadWithCount, HookedReadWithCount);
 		DetourAttach(&(PVOID&)RealSeek, HookedSeek);
-		DetourAttach(&(PVOID&)RealWriteWithCount, HookedWriteWithCount);
+
+		if (Preferences::GetInstance().LargeWritePatch())
+		{
+			DetourAttach(&(PVOID&)RealWriteWithCount, HookedWriteWithCount);
+		}
+
 		LONG error = DetourTransactionCommit();
 
 		if (error == NO_ERROR)

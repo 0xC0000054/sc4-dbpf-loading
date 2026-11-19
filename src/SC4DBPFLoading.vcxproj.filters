@@ -138,6 +138,9 @@
     <ClCompile Include="ShellLinkHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Preferences.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="version.h">
@@ -237,6 +240,9 @@
       <Filter>Header Files\sc4-dll-utilities</Filter>
     </ClInclude>
     <ClInclude Include="ShellLinkHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Preferences.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
