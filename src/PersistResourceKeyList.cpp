@@ -70,8 +70,6 @@ bool PersistResourceKeyList::Insert(cIGZPersistResourceKeyList const& list)
 
 bool PersistResourceKeyList::Erase(cGZPersistResourceKey const& key)
 {
-	bool result = false;
-
 	for (auto entry = keys.begin(); entry != keys.end(); entry++)
 	{
 		if (entry->instance == key.instance
@@ -79,12 +77,11 @@ bool PersistResourceKeyList::Erase(cGZPersistResourceKey const& key)
 			&& entry->type == key.type)
 		{
 			keys.erase(entry);
-			result = true;
 			break;
 		}
 	}
 
-	return result;
+	return true;
 }
 
 bool PersistResourceKeyList::EraseAll()
