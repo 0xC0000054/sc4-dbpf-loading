@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # vcpkg repository build files
 vcpkg_installed/
+
+# VS profiler files
+*.diagsession
