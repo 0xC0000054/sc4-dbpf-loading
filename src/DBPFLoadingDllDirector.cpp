@@ -24,7 +24,6 @@
 #include "DebugUtil.h"
 #include "FileSystem.h"
 #include "Logger.h"
-#include "LooseSC4PluginScanPatch.h"
 #include "DatMultiPackedFile.h"
 #include "Patcher.h"
 #include "QFSDecoderHooks.h"
@@ -48,7 +47,7 @@
 #include "cRZCOMDllDirector.h"
 #include "cISC4App.h"
 #include "GZServPtrs.h"
-#include "SC4Preferences.h"
+#include "SetupResourcesPatch.h"
 
 #include <filesystem>
 #include <memory>
@@ -146,98 +145,7 @@ namespace
 		}
 	}
 
-
-	enum class ResourceLoadingTraceOption
-	{
-		// No tracing will be performed.
-		None = 0,
-		// A message box will be shown with the number of milliseconds the game took to load resources.
-		ShowLoadTime,
-		// Message boxes will be shown before and after the resource loading so that the user can start
-		// and stop a program that logs the Windows API calls issued by the game.
-		// For example, Sysinternals Process Monitor.
-		WindowsAPILogWait,
-		// Writes a list of the loaded fies to the plugin's log file.
-		ListLoadedFiles,
-	};
-
-	static ResourceLoadingTraceOption resourceLoadingTraceOption = ResourceLoadingTraceOption::None;
-
-	typedef bool(__thiscall* pfn_cSC4App_SetupResources)(void* pSC4App);
-
-	static pfn_cSC4App_SetupResources RealSetupResources = reinterpret_cast<pfn_cSC4App_SetupResources>(0x4572B0);
-
-	bool TimedSetupResources(void* pSC4App)
-	{
-		Stopwatch sw;
-		sw.Start();
-
-		bool result = RealSetupResources(pSC4App);
-
-		sw.Stop();
-
-		char buffer[256]{};
-
-		std::snprintf(buffer, sizeof(buffer), "Loaded resources in %lld ms", sw.GetElapsed<Stopwatch::TimeFormat::Milliseconds>());
-
-		MessageBoxA(nullptr, buffer, "SC4DBPFLoading", 0);
-
-		return result;
-	}
-
-	bool WindowsAPILogSetupResources(void* pSC4App)
-	{
-		MessageBoxA(nullptr, "Start your Process Monitor trace and press OK.", "SC4DBPFLoading", 0);
-
-		bool result = RealSetupResources(pSC4App);
-
-		MessageBoxA(nullptr, "Stop your Process Monitor trace and press OK.", "SC4DBPFLoading", 0);
-
-		return result;
-	}
-
-	bool __fastcall HookedSetupResources(void* pSC4App, void* edxUnused)
-	{
-		bool result = false;
-
-		switch (resourceLoadingTraceOption)
-		{
-		case ResourceLoadingTraceOption::ShowLoadTime:
-			result = TimedSetupResources(pSC4App);
-			break;
-		case ResourceLoadingTraceOption::WindowsAPILogWait:
-			result = WindowsAPILogSetupResources(pSC4App);
-			break;
-		case ResourceLoadingTraceOption::None:
-		case ResourceLoadingTraceOption::ListLoadedFiles:
-		default:
-			result = RealSetupResources(pSC4App);
-			break;
-		}
-
-		return result;
-	}
-
-	void InstallSC4AppSetupResourcesHook(uint16_t gameVersion)
-	{
-		if (gameVersion == 641)
-		{
-			Logger& logger = Logger::GetInstance();
-
-			try
-			{
-				Patcher::InstallCallHook(0x44C97E, &HookedSetupResources);
-				logger.WriteLine(LogLevel::Info, "Installed the cSC4App::SetupResources hook.");
-			}
-			catch (const std::exception& e)
-			{
-				logger.WriteLineFormatted(
-					LogLevel::Error,
-					"Failed to install the cSC4App::SetupResources hook: %s",
-					e.what());
-			}
-		}
-	}
+	static SetupResourcesPatch::ResourceLoadingTraceOption resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::None;
 
 	void InstallMemoryPatches()
 	{
@@ -252,15 +160,7 @@ namespace
 			cRZFileHooks::Install();
 			DBPFIndexHashPatch::Install();
 			QFSDecoderHooks::Install();
-			LooseSC4PluginScanPatch::Install();
-
-			switch (resourceLoadingTraceOption)
-			{
-			case ResourceLoadingTraceOption::ShowLoadTime:
-			case ResourceLoadingTraceOption::WindowsAPILogWait:
-				InstallSC4AppSetupResourcesHook(gameVersion);
-				break;
-			}
+			SetupResourcesPatch::Install(resourceLoadingTraceOption);
 		}
 		else
 		{
@@ -326,7 +226,7 @@ private:
 		cIGZFrameWork* const pFramework = pCOM->FrameWork();
 		cIGZCmdLine* const pCmdLine = pFramework->CommandLine();
 
-		resourceLoadingTraceOption = ResourceLoadingTraceOption::None;
+		resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::None;
 
 		cRZBaseString value;
 
@@ -336,21 +236,21 @@ private:
 
 			if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "ShowLoadTime"sv))
 			{
-				resourceLoadingTraceOption = ResourceLoadingTraceOption::ShowLoadTime;
+				resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::ShowLoadTime;
 			}
 			else if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "WinAPI"sv))
 			{
-				resourceLoadingTraceOption = ResourceLoadingTraceOption::WindowsAPILogWait;
+				resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::WindowsAPILogWait;
 			}
 			else if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "ListLoadedFiles"sv))
 			{
-				resourceLoadingTraceOption = ResourceLoadingTraceOption::ListLoadedFiles;
+				resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles;
 			}
 		}
 
 		InstallMemoryPatches();
 
-		if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ListLoadedFiles)
+		if (resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles)
 		{
 			if (pFramework->GetState() < cIGZFrameWork::kStatePreAppInit)
 			{
@@ -367,7 +267,7 @@ private:
 
 	bool PostAppInit()
 	{
-		if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ListLoadedFiles)
+		if (resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles)
 		{
 			cIGZPersistResourceManagerPtr pResMan;
 

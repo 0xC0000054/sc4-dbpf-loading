@@ -20,7 +20,21 @@
 
 #pragma once
 
-namespace LooseSC4PluginScanPatch
+namespace SetupResourcesPatch
 {
-	void Install();
+	enum class ResourceLoadingTraceOption
+	{
+		// No tracing will be performed.
+		None = 0,
+		// A message box will be shown with the number of milliseconds the game took to load resources.
+		ShowLoadTime,
+		// Message boxes will be shown before and after the resource loading so that the user can start
+		// and stop a program that logs the Windows API calls issued by the game.
+		// For example, Sysinternals Process Monitor.
+		WindowsAPILogWait,
+		// Writes a list of the loaded fies to the plugin's log file.
+		ListLoadedFiles,
+	};
+
+	void Install(ResourceLoadingTraceOption traceOption);
 }

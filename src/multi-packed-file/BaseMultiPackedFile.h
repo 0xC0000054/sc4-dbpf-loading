@@ -47,6 +47,12 @@ protected:
 public:
 	~BaseMultiPackedFile();
 
+	cIGZPersistDBSegment* AsIGZPersistDBSegment();
+
+	bool Open(const std::vector<cRZBaseString>& files);
+
+	// cIGZUnknown
+
 	bool QueryInterface(uint32_t riid, void** ppvObj) override;
 	uint32_t AddRef() override;
 	uint32_t Release() override;

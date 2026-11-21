@@ -50,6 +50,42 @@ BaseMultiPackedFile::~BaseMultiPackedFile()
 	DeleteCriticalSection(&criticalSection);
 }
 
+cIGZPersistDBSegment* BaseMultiPackedFile::AsIGZPersistDBSegment()
+{
+	return static_cast<cIGZPersistDBSegment*>(this);
+}
+
+bool BaseMultiPackedFile::Open(const std::vector<cRZBaseString>& files)
+{
+	bool result = false;
+
+	if (!files.empty())
+	{
+		segments.reserve(files.size());
+
+		cIGZCOM* pCOM = RZGetFramework()->GetCOMObject();
+		cRZAutoRefCount<PersistResourceKeyList> keyList(
+			new PersistResourceKeyList(),
+			cRZAutoRefCount<PersistResourceKeyList>::kAddRef);
+
+		for (const cRZBaseString& path : files)
+		{
+			if (!SetupGZPersistDBSegment(path, pCOM, keyList))
+			{
+				Logger::GetInstance().WriteLineFormatted(
+					LogLevel::Error,
+					"Failed to load: %s",
+					path.ToChar());
+			}
+		}
+
+		isOpen = segments.size() > 0;
+		result = isOpen;
+	}
+
+	return result;
+}
+
 bool BaseMultiPackedFile::QueryInterface(uint32_t riid, void** ppvObj)
 {
 	if (riid == GZIID_cIGZPersistDBSegmentMultiPackedFiles)
@@ -112,29 +148,7 @@ bool BaseMultiPackedFile::Open(bool openRead, bool openWrite)
 		{
 			std::vector<cRZBaseString> files = GetDBPFFiles(folderPath);
 
-			if (!files.empty())
-			{
-				segments.reserve(files.size());
-
-				cIGZCOM* pCOM = RZGetFramework()->GetCOMObject();
-				cRZAutoRefCount<PersistResourceKeyList> keyList(
-					new PersistResourceKeyList(),
-					cRZAutoRefCount<PersistResourceKeyList>::kAddRef);
-
-				for (const cRZBaseString& path : files)
-				{
-					if (!SetupGZPersistDBSegment(path, pCOM, keyList))
-					{
-						Logger::GetInstance().WriteLineFormatted(
-							LogLevel::Error,
-							"Failed to load: %s",
-							path.ToChar());
-					}
-				}
-
-				isOpen = segments.size() > 0;
-				result = isOpen;
-			}
+			result = Open(files);
 		}
 		catch (const std::exception& e)
 		{
