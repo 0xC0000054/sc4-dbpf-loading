@@ -36,5 +36,7 @@ namespace SetupResourcesPatch
 		ListLoadedFiles,
 	};
 
-	void Install(ResourceLoadingTraceOption traceOption);
+	extern ResourceLoadingTraceOption resourceLoadingTraceOption;
+
+	void Install();
 }

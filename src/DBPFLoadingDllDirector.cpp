@@ -145,8 +145,6 @@ namespace
 		}
 	}
 
-	static SetupResourcesPatch::ResourceLoadingTraceOption resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::None;
-
 	void InstallMemoryPatches()
 	{
 		Logger& logger = Logger::GetInstance();
@@ -160,7 +158,7 @@ namespace
 			cRZFileHooks::Install();
 			DBPFIndexHashPatch::Install();
 			QFSDecoderHooks::Install();
-			SetupResourcesPatch::Install(resourceLoadingTraceOption);
+			SetupResourcesPatch::Install();
 		}
 		else
 		{
@@ -226,7 +224,7 @@ private:
 		cIGZFrameWork* const pFramework = pCOM->FrameWork();
 		cIGZCmdLine* const pCmdLine = pFramework->CommandLine();
 
-		resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::None;
+		SetupResourcesPatch::resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::None;
 
 		cRZBaseString value;
 
@@ -236,21 +234,21 @@ private:
 
 			if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "ShowLoadTime"sv))
 			{
-				resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::ShowLoadTime;
+				SetupResourcesPatch::resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::ShowLoadTime;
 			}
 			else if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "WinAPI"sv))
 			{
-				resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::WindowsAPILogWait;
+				SetupResourcesPatch::resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::WindowsAPILogWait;
 			}
 			else if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "ListLoadedFiles"sv))
 			{
-				resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles;
+				SetupResourcesPatch::resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles;
 			}
 		}
 
 		InstallMemoryPatches();
 
-		if (resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles)
+		if (SetupResourcesPatch::resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles)
 		{
 			if (pFramework->GetState() < cIGZFrameWork::kStatePreAppInit)
 			{
@@ -267,7 +265,7 @@ private:
 
 	bool PostAppInit()
 	{
-		if (resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles)
+		if (SetupResourcesPatch::resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles)
 		{
 			cIGZPersistResourceManagerPtr pResMan;
 

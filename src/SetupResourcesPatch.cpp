@@ -297,13 +297,11 @@ namespace
 		return result;
 	}
 
-	static SetupResourcesPatch::ResourceLoadingTraceOption resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::None;
-
 	bool __fastcall HookedSetupResources(void* pThis, void* edxUnused)
 	{
 		bool result = false;
 
-		switch (resourceLoadingTraceOption)
+		switch (SetupResourcesPatch::resourceLoadingTraceOption)
 		{
 		case SetupResourcesPatch::ResourceLoadingTraceOption::ShowLoadTime:
 			result = TimedSetupResources(pThis);
@@ -322,14 +320,15 @@ namespace
 	}
 }
 
-void SetupResourcesPatch::Install(ResourceLoadingTraceOption traceOption)
+SetupResourcesPatch::ResourceLoadingTraceOption SetupResourcesPatch::resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::None;
+
+void SetupResourcesPatch::Install()
 {
 	Logger& logger = Logger::GetInstance();
 
 	try
 	{
 		Patcher::InstallCallHook(0x44C97E, &HookedSetupResources);
-		resourceLoadingTraceOption = traceOption;
 		logger.WriteLine(LogLevel::Info, "Installed the SetupResources hook.");
 	}
 	catch (const std::exception& e)
