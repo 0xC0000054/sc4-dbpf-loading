@@ -306,9 +306,9 @@ std::vector<cRZBaseString> SC4DirectoryEnumerator::GetDatFilesRecurseSubdirector
 	return files;
 }
 
-void SC4DirectoryEnumerator::GetDBPFFilesRecurseSubdirectories(const cIGZString& root, std::vector<cRZBaseString>& datFiles, std::vector<cRZBaseString>& sc4Files)
+void SC4DirectoryEnumerator::GetDBPFFilesRecurseSubdirectories(const std::wstring& root, std::vector<cRZBaseString>& datFiles, std::vector<cRZBaseString>& sc4Files)
 {
-	DBPFFileScanDirectoryRecursive(StringConversion::ToUtf16(root), true, datFiles, sc4Files);
+	DBPFFileScanDirectoryRecursive(root, true, datFiles, sc4Files);
 }
 
 std::vector<cRZBaseString> SC4DirectoryEnumerator::GetLooseSC4FilesRecurseSubdirectories(const cIGZString& root)

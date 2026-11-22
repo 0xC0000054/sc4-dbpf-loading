@@ -25,6 +25,7 @@
 #include "Patcher.h"
 #include "SC4DirectoryEnumerator.h"
 #include "Stopwatch.h"
+#include "StringConversion.h"
 #include "cIGZApp.h"
 #include "cIGZCOM.h"
 #include "cIGZFrameWork.h"
@@ -139,10 +140,18 @@ namespace
 
 	void SetupPluginsDirectory(const cIGZString& path, cIGZPersistResourceManager* pRM)
 	{
+		const std::wstring utf16Path = StringConversion::ToUtf16(path);
+
+		// Create the directory if it doesn't exist.
+		if (GetFileAttributesW(utf16Path.c_str()) == INVALID_FILE_ATTRIBUTES)
+		{
+			CreateDirectoryW(utf16Path.c_str(), nullptr);
+		}
+
 		std::vector<cRZBaseString> datFiles;
 		std::vector<cRZBaseString> sc4Files;
 
-		SC4DirectoryEnumerator::GetDBPFFilesRecurseSubdirectories(path, datFiles, sc4Files);
+		SC4DirectoryEnumerator::GetDBPFFilesRecurseSubdirectories(utf16Path, datFiles, sc4Files);
 
 		// SC4Desc, SC4Lot, and SC4Model plug-ins are always loaded before DAT files.
 		AddMultiPackedFileToResourceManager<SC4PluginMultiPackedFile>(path, sc4Files, pRM);
