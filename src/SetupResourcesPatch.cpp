@@ -183,9 +183,9 @@ namespace
 
 		try
 		{
-			cISC4App* pSC4App = reinterpret_cast<cISC4App*>(static_cast<uint8_t*>(pThis) + 0xc);
+			cISC4App* pISC4App = reinterpret_cast<cISC4App*>(static_cast<uint8_t*>(pThis) + 0xc);
 
-			if (pSC4App->GetDebugFunctionalityEnabled())
+			if (pISC4App->GetDebugFunctionalityEnabled())
 			{
 				// Replicate the steps the game uses to set up its internal development environment.
 
@@ -226,27 +226,27 @@ namespace
 			// 	  - All sub-folders are recursively loaded.
 
 			cRZBaseString installationRoot;
-			pSC4App->GetDataDirectory(installationRoot, -1);
+			pISC4App->GetDataDirectory(installationRoot, -1);
 
 			LoadDATPluginsFromDirectory(installationRoot, pCOM, resMan);
 
 			cRZBaseString installationLanguageFolder;
-			pSC4App->GetDataDirectory(installationLanguageFolder, 0);
+			pISC4App->GetDataDirectory(installationLanguageFolder, 0);
 
 			LoadDATPluginsFromDirectory(installationLanguageFolder, pCOM, resMan);
 
 			cRZBaseString installationSkuData;
-			pSC4App->GetSkuSpecificDirectory(installationSkuData);
+			pISC4App->GetSkuSpecificDirectory(installationSkuData);
 
 			AddMultiPackedFileToResourceManager(installationSkuData, resMan);
 
 			cRZBaseString installationPlugins;
-			pSC4App->GetPluginDirectory(installationPlugins);
+			pISC4App->GetPluginDirectory(installationPlugins);
 
 			SetupPluginsDirectory(installationPlugins, resMan);
 
 			cRZBaseString userPlugins;
-			pSC4App->GetUserPluginDirectory(userPlugins);
+			pISC4App->GetUserPluginDirectory(userPlugins);
 
 			SetupPluginsDirectory(userPlugins, resMan);
 
