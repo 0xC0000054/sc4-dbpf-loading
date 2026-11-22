@@ -25,11 +25,13 @@
 #include "Patcher.h"
 #include "SC4DirectoryEnumerator.h"
 #include "Stopwatch.h"
+#include "cIGZApp.h"
 #include "cIGZCOM.h"
 #include "cIGZFrameWork.h"
 #include "cIGZDBSegmentPackedFile.h"
 #include "cIGZPersistDBSegment.h"
 #include "cIGZPersistResourceManager.h"
+#include "cIGZRegistry.h"
 #include "cISC4App.h"
 #include "cRZAutoRefCount.h"
 #include "cRZBaseString.h"
@@ -166,12 +168,36 @@ namespace
 		pRM->RegisterObjectFactory(0x42e411c2, 0xa2e3d533, nullptr);
 	}
 
-	bool SetupResources(cISC4App* pSC4App)
+	bool SetupResources(void* pThis)
 	{
 		bool result = false;
 
 		try
 		{
+			cISC4App* pSC4App = reinterpret_cast<cISC4App*>(static_cast<uint8_t*>(pThis) + 0xc);
+
+			if (pSC4App->GetDebugFunctionalityEnabled())
+			{
+				// Replicate the steps the game uses to set up its internal development environment.
+
+				uint8_t* pGZApp = static_cast<uint8_t*>(pThis) + 0x10;
+				cIGZApp* pIGZApp = reinterpret_cast<cIGZApp*>(pGZApp + 0x1c);
+
+				// cSC4App::LoadRegistry loads and parses <SC4 Root>\Sys\Resources.ini.
+
+				pIGZApp->LoadRegistry();
+
+				cIGZRegistryPtr pRegistry;
+
+				// cSC4App::CreateDBSegmentCallback
+				cIGZRegistry::EnumCallback pCallback = reinterpret_cast<cIGZRegistry::EnumCallback>(0x456ba0);
+
+				// Load the DBSegment entries from Resources.ini.
+
+				char* root = const_cast<char*>("CN_PDBS");
+				pRegistry->EnumCategory(root, pCallback, pThis);
+			}
+
 			cIGZCOM* const pCOM = RZGetCOMDllDirector()->GZCOM();
 			cIGZPersistResourceManagerPtr resMan;
 
@@ -233,12 +259,12 @@ namespace
 		return result;
 	}
 
-	bool TimedSetupResources(cISC4App* pSC4App)
+	bool TimedSetupResources(void* pThis)
 	{
 		Stopwatch sw;
 		sw.Start();
 
-		bool result = SetupResources(pSC4App);
+		bool result = SetupResources(pThis);
 
 		sw.Stop();
 
@@ -251,11 +277,11 @@ namespace
 		return result;
 	}
 
-	bool WindowsAPILogSetupResources(cISC4App* pSC4App)
+	bool WindowsAPILogSetupResources(void* pThis)
 	{
 		MessageBoxA(nullptr, "Start your Process Monitor trace and press OK.", "SC4DBPFLoading", 0);
 
-		bool result = SetupResources(pSC4App);
+		bool result = SetupResources(pThis);
 
 		MessageBoxA(nullptr, "Stop your Process Monitor trace and press OK.", "SC4DBPFLoading", 0);
 
@@ -268,20 +294,18 @@ namespace
 	{
 		bool result = false;
 
-		cISC4App* pSC4App = reinterpret_cast<cISC4App*>(static_cast<uint8_t*>(pThis) + 0xc);
-
 		switch (resourceLoadingTraceOption)
 		{
 		case SetupResourcesPatch::ResourceLoadingTraceOption::ShowLoadTime:
-			result = TimedSetupResources(pSC4App);
+			result = TimedSetupResources(pThis);
 			break;
 		case SetupResourcesPatch::ResourceLoadingTraceOption::WindowsAPILogWait:
-			result = WindowsAPILogSetupResources(pSC4App);
+			result = WindowsAPILogSetupResources(pThis);
 			break;
 		case SetupResourcesPatch::ResourceLoadingTraceOption::None:
 		case SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles:
 		default:
-			result = SetupResources(pSC4App);
+			result = SetupResources(pThis);
 			break;
 		}
 
