@@ -139,12 +139,19 @@ namespace
 		{
 			if (pSegment->Init())
 			{
+				bool registered = false;
+
 				if (pSegment->SetPath(path))
 				{
 					if (pSegment->Open(true, false))
 					{
-						pRM->RegisterDBSegment(*pSegment);
+						registered = pRM->RegisterDBSegment(*pSegment);
 					}
+				}
+
+				if (!registered)
+				{
+					pSegment->Shutdown();
 				}
 			}
 		}
