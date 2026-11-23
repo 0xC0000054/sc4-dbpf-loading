@@ -51,19 +51,58 @@ namespace
 
 		if (!files.empty())
 		{
-			cRZAutoRefCount<BaseMultiPackedFile> multiPackedFile(
-				new T(),
-				cRZAutoRefCount<BaseMultiPackedFile>::kAddRef);
+			try
+			{
+				cRZAutoRefCount<BaseMultiPackedFile> multiPackedFile(
+					new T(),
+					cRZAutoRefCount<BaseMultiPackedFile>::kAddRef);
+
+				if (multiPackedFile->Init())
+				{
+					bool result = false;
+
+					if (multiPackedFile->SetPath(folder))
+					{
+						if (multiPackedFile->Open(files))
+						{
+							result = pRM->RegisterDBSegment(*multiPackedFile->AsIGZPersistDBSegment());
+						}
+					}
+
+					if (!result)
+					{
+						multiPackedFile->Shutdown();
+					}
+				}
+			}
+			catch (const std::exception& e)
+			{
+				Logger::GetInstance().WriteLineFormatted(
+					LogLevel::Error,
+					"Error loading plugins from %s: %s",
+					root.ToChar(),
+					e.what());
+			}
+		}
+	}
+
+	void AddMultiPackedFileToResourceManager(const cIGZString& path, cIGZPersistResourceManager* pRM)
+	{
+		try
+		{
+			cRZAutoRefCount<cIGZPersistDBSegment> multiPackedFile(
+				new DatMultiPackedFile(),
+				cRZAutoRefCount<cIGZPersistDBSegment>::kAddRef);
 
 			if (multiPackedFile->Init())
 			{
 				bool result = false;
 
-				if (multiPackedFile->SetPath(folder))
+				if (multiPackedFile->SetPath(path))
 				{
-					if (multiPackedFile->Open(files))
+					if (multiPackedFile->Open(true, false))
 					{
-						result = pRM->RegisterDBSegment(*multiPackedFile->AsIGZPersistDBSegment());
+						result = pRM->RegisterDBSegment(*multiPackedFile);
 					}
 				}
 
@@ -73,30 +112,13 @@ namespace
 				}
 			}
 		}
-	}
-
-	void AddMultiPackedFileToResourceManager(const cIGZString& path, cIGZPersistResourceManager* pRM)
-	{
-		cRZAutoRefCount<cIGZPersistDBSegment> multiPackedFile(
-			new DatMultiPackedFile(),
-			cRZAutoRefCount<cIGZPersistDBSegment>::kAddRef);
-
-		if (multiPackedFile->Init())
+		catch (const std::exception& e)
 		{
-			bool result = false;
-
-			if (multiPackedFile->SetPath(path))
-			{
-				if (multiPackedFile->Open(true, false))
-				{
-					result = pRM->RegisterDBSegment(*multiPackedFile);
-				}
-			}
-
-			if (!result)
-			{
-				multiPackedFile->Shutdown();
-			}
+			Logger::GetInstance().WriteLineFormatted(
+				LogLevel::Error,
+				"Error loading plugins from %s: %s",
+				path.ToChar(),
+				e.what());
 		}
 	}
 
@@ -130,32 +152,54 @@ namespace
 		cIGZCOM* const pCOM,
 		cIGZPersistResourceManager* pRM)
 	{
-		std::vector<cRZBaseString> datFiles = SC4DirectoryEnumerator::GetDatFiles(directory);
-
-		for (const cRZBaseString& file : datFiles)
+		try
 		{
-			SetupGZPersistDBSegment(file, pCOM, pRM);
+			std::vector<cRZBaseString> datFiles = SC4DirectoryEnumerator::GetDatFiles(directory);
+
+			for (const cRZBaseString& file : datFiles)
+			{
+				SetupGZPersistDBSegment(file, pCOM, pRM);
+			}
+		}
+		catch (const std::exception& e)
+		{
+			Logger::GetInstance().WriteLineFormatted(
+				LogLevel::Error,
+				"Error loading plugins from %s: %s",
+				directory.ToChar(),
+				e.what());
 		}
 	}
 
 	void SetupPluginsDirectory(const cIGZString& path, cIGZPersistResourceManager* pRM)
 	{
-		const std::wstring utf16Path = StringConversion::ToUtf16(path);
-
-		// Create the directory if it doesn't exist.
-		if (GetFileAttributesW(utf16Path.c_str()) == INVALID_FILE_ATTRIBUTES)
+		try
 		{
-			CreateDirectoryW(utf16Path.c_str(), nullptr);
+			const std::wstring utf16Path = StringConversion::ToUtf16(path);
+
+			// Create the directory if it doesn't exist.
+			if (GetFileAttributesW(utf16Path.c_str()) == INVALID_FILE_ATTRIBUTES)
+			{
+				CreateDirectoryW(utf16Path.c_str(), nullptr);
+			}
+
+			std::vector<cRZBaseString> datFiles;
+			std::vector<cRZBaseString> sc4Files;
+
+			SC4DirectoryEnumerator::GetDBPFFilesRecurseSubdirectories(utf16Path, datFiles, sc4Files);
+
+			// SC4Desc, SC4Lot, and SC4Model plug-ins are always loaded before DAT files.
+			AddMultiPackedFileToResourceManager<SC4PluginMultiPackedFile>(path, sc4Files, pRM);
+			AddMultiPackedFileToResourceManager<DatMultiPackedFile>(path, datFiles, pRM);
 		}
-
-		std::vector<cRZBaseString> datFiles;
-		std::vector<cRZBaseString> sc4Files;
-
-		SC4DirectoryEnumerator::GetDBPFFilesRecurseSubdirectories(utf16Path, datFiles, sc4Files);
-
-		// SC4Desc, SC4Lot, and SC4Model plug-ins are always loaded before DAT files.
-		AddMultiPackedFileToResourceManager<SC4PluginMultiPackedFile>(path, sc4Files, pRM);
-		AddMultiPackedFileToResourceManager<DatMultiPackedFile>(path, datFiles, pRM);
+		catch (const std::exception& e)
+		{
+			Logger::GetInstance().WriteLineFormatted(
+				LogLevel::Error,
+				"Error loading plugins from %s: %s",
+				path.ToChar(),
+				e.what());
+		}
 	}
 
 	void SetupResourceFactories(cIGZPersistResourceManager* pRM)
