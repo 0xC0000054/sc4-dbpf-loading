@@ -81,7 +81,7 @@ namespace
 				Logger::GetInstance().WriteLineFormatted(
 					LogLevel::Error,
 					"Error loading plugins from %s: %s",
-					root.ToChar(),
+					folder.ToChar(),
 					e.what());
 			}
 		}
