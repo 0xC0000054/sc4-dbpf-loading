@@ -26,6 +26,6 @@ namespace SC4DirectoryEnumerator
 {
 	std::vector<cRZBaseString> GetDatFiles(const cIGZString& root);
 	std::vector<cRZBaseString> GetDatFilesRecurseSubdirectories(const cIGZString& root);
-	void GetDBPFFilesRecurseSubdirectories(const std::wstring& root, std::vector<cRZBaseString>& sc4Files, std::vector<cRZBaseString>& datFiles);
+	void GetDBPFFilesRecurseSubdirectories(const std::wstring& root, std::vector<cRZBaseString>& datFiles, std::vector<cRZBaseString>& sc4Files);
 	std::vector<cRZBaseString> GetLooseSC4FilesRecurseSubdirectories(const cIGZString& root);
 };
