@@ -61,26 +61,34 @@ bool BaseMultiPackedFile::Open(const std::vector<cRZBaseString>& files)
 
 	if (!files.empty())
 	{
-		segments.reserve(files.size());
-
-		cIGZCOM* pCOM = RZGetFramework()->GetCOMObject();
-		cRZAutoRefCount<PersistResourceKeyList> keyList(
-			new PersistResourceKeyList(),
-			cRZAutoRefCount<PersistResourceKeyList>::kAddRef);
-
-		for (const cRZBaseString& path : files)
+		try
 		{
-			if (!SetupGZPersistDBSegment(path, pCOM, keyList))
-			{
-				Logger::GetInstance().WriteLineFormatted(
-					LogLevel::Error,
-					"Failed to load: %s",
-					path.ToChar());
-			}
-		}
+			segments.reserve(files.size());
 
-		isOpen = segments.size() > 0;
-		result = isOpen;
+			cIGZCOM* pCOM = RZGetFramework()->GetCOMObject();
+			cRZAutoRefCount<PersistResourceKeyList> keyList(
+				new PersistResourceKeyList(),
+				cRZAutoRefCount<PersistResourceKeyList>::kAddRef);
+
+			for (const cRZBaseString& path : files)
+			{
+				if (!SetupGZPersistDBSegment(path, pCOM, keyList))
+				{
+					Logger::GetInstance().WriteLineFormatted(
+						LogLevel::Error,
+						"Failed to load: %s",
+						path.ToChar());
+				}
+			}
+
+			isOpen = segments.size() > 0;
+			result = isOpen;
+		}
+		catch (const std::exception& e)
+		{
+			Logger::GetInstance().WriteLine(LogLevel::Error, e.what());
+			result = false;
+		}
 	}
 
 	return result;
