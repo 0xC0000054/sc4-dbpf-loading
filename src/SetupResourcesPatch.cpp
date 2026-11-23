@@ -38,6 +38,8 @@
 #include "cRZBaseString.h"
 #include "cRZCOMDllDirector.h"
 #include "GZServPtrs.h"
+#include <array>
+#include <memory>
 #include <ShlObj_core.h>
 
 namespace
@@ -375,8 +377,20 @@ void SetupResourcesPatch::Install()
 
 	try
 	{
-		Patcher::InstallCallHook(0x44C97E, &HookedSetupResources);
-		logger.WriteLine(LogLevel::Info, "Installed the SetupResources hook.");
+		static constexpr std::array<uint8_t, 5> expectedPatchTargetBytes = { 0xe8, 0x2d, 0xa9, 0x00, 0x00 };
+		constexpr uintptr_t cSC4App_Init_Inject = 0x44C97E;
+
+		if (std::memcmp(reinterpret_cast<const void*>(cSC4App_Init_Inject), expectedPatchTargetBytes.data(), expectedPatchTargetBytes.size()) == 0)
+		{
+			Patcher::InstallCallHook(cSC4App_Init_Inject, &HookedSetupResources);
+			logger.WriteLine(LogLevel::Info, "Installed the SetupResources hook.");
+		}
+		else
+		{
+			logger.WriteLine(
+				LogLevel::Info,
+				"Failed to install the SetupResources hook, the patch target bytes didn't match the expected value.");
+		}
 	}
 	catch (const std::exception& e)
 	{
