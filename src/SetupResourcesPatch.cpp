@@ -301,7 +301,7 @@ namespace
 			// the resource manager factory classes.
 			SetupResourceFactories(resMan);
 
-			result = resMan->GetSegmentCount() > 0;
+			result = resMan->GetSegmentCount() >= 3;
 		}
 		catch (const std::exception& e)
 		{
