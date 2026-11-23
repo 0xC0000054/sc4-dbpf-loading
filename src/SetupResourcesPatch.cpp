@@ -38,6 +38,7 @@
 #include "cRZBaseString.h"
 #include "cRZCOMDllDirector.h"
 #include "GZServPtrs.h"
+#include <ShlObj_core.h>
 
 namespace
 {
@@ -180,7 +181,9 @@ namespace
 			// Create the directory if it doesn't exist.
 			if (GetFileAttributesW(utf16Path.c_str()) == INVALID_FILE_ATTRIBUTES)
 			{
-				CreateDirectoryW(utf16Path.c_str(), nullptr);
+				// SHCreateDirectoryExW handles multi-level directory creation,
+				// which is necessary for user plugins in the -UserDir case.
+				SHCreateDirectoryExW(nullptr, utf16Path.c_str(), nullptr);
 			}
 
 			std::vector<cRZBaseString> datFiles;
