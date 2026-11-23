@@ -19,8 +19,9 @@
  */
 
 #include "SC4DirectoryEnumerator.h"
-#include "StringConversion.h"
+#include "Logger.h"
 #include "PathUtil.h"
+#include "StringConversion.h"
 #include "StringViewUtil.h"
 #include <format>
 #include <stdexcept>
@@ -42,20 +43,19 @@ namespace
 		return StringConversion::FromUtf16(nativePath);
 	}
 
-	void ThrowExceptionForWin32Error(
+	void LogWin32Error(
 		const char* win32MethodName,
 		DWORD error,
 		const std::wstring& fileName)
 	{
 		const cRZBaseString fileNameAsUtf8 = StringConversion::FromUtf16(fileName);
 
-		const std::string message = std::format(
+		Logger::GetInstance().WriteLineFormatted(
+			LogLevel::Error,
 			"{0} failed with error code {1}. Path={2}",
 			win32MethodName,
 			error,
 			fileNameAsUtf8.ToChar());
-
-		throw std::runtime_error(message);
 	}
 
 	bool DatFilesPredicate(const std::wstring_view& fileName)
@@ -156,7 +156,7 @@ namespace
 
 			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
 			{
-				ThrowExceptionForWin32Error("FindNextFileW", lastError, searchDirectory);
+				LogWin32Error("FindNextFileW", lastError, searchDirectory);
 			}
 		}
 		else
@@ -165,7 +165,7 @@ namespace
 
 			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
 			{
-				ThrowExceptionForWin32Error("FindFirstFileExW", lastError, searchDirectory);
+				LogWin32Error("FindFirstFileExW", lastError, searchDirectory);
 			}
 		}
 
@@ -227,7 +227,7 @@ namespace
 
 			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
 			{
-				ThrowExceptionForWin32Error("FindNextFileW", lastError, searchDirectory);
+				LogWin32Error("FindNextFileW", lastError, searchDirectory);
 			}
 		}
 		else
@@ -236,7 +236,7 @@ namespace
 
 			if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
 			{
-				ThrowExceptionForWin32Error("FindFirstFileExW", lastError, searchDirectory);
+				LogWin32Error("FindFirstFileExW", lastError, searchDirectory);
 			}
 		}
 
@@ -281,7 +281,7 @@ std::vector<cRZBaseString> SC4DirectoryEnumerator::GetDatFiles(const cIGZString&
 
 		if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
 		{
-			ThrowExceptionForWin32Error("FindNextFileW", lastError, searchDirectory);
+			LogWin32Error("FindNextFileW", lastError, searchDirectory);
 		}
 	}
 	else
@@ -290,7 +290,7 @@ std::vector<cRZBaseString> SC4DirectoryEnumerator::GetDatFiles(const cIGZString&
 
 		if (lastError != ERROR_SUCCESS && lastError != ERROR_NO_MORE_FILES)
 		{
-			ThrowExceptionForWin32Error("FindFirstFileExW", lastError, searchDirectory);
+			LogWin32Error("FindFirstFileExW", lastError, searchDirectory);
 		}
 	}
 
