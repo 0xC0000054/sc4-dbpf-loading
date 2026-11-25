@@ -214,6 +214,7 @@ namespace
 			break;
 		case ResourceLoadingTraceOption::None:
 		case ResourceLoadingTraceOption::ListLoadedFiles:
+		case ResourceLoadingTraceOption::ShowRegionViewLoadTime: 
 		default:
 			result = RealSetupResources(pSC4App);
 			break;
