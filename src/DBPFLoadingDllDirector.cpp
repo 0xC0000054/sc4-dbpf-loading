@@ -37,6 +37,8 @@
 #include "cIGZCOM.h"
 #include "cIGZDBSegmentPackedFile.h"
 #include "cIGZFrameWork.h"
+#include "cIGZMessage2Standard.h"
+#include "cIGZMessageServer2.h"
 #include "cIGZPersistDBSegment.h"
 #include "cIGZPersistDBSegmentMultiPackedFiles.h"
 #include "cIGZPersistResourceKeyFilter.h"
@@ -44,10 +46,11 @@
 #include "cIGZPersistResourceManager.h"
 #include "cRZAutoRefCount.h"
 #include "cRZBaseString.h"
-#include "cRZCOMDllDirector.h"
+#include "cRZMessage2COMDirector.h"
 #include "cISC4App.h"
 #include "GZServPtrs.h"
 #include "SetupResourcesPatch.h"
+#include "SC4UI.h"
 
 #include <filesystem>
 #include <memory>
@@ -181,7 +184,9 @@ namespace
 	}
 }
 
-class DBPFLoadingDllDirector : public cRZCOMDllDirector
+static const uint32_t kSC4MessagePostRegionInit = 0xCBB5BB45;
+
+class DBPFLoadingDllDirector : public cRZMessage2COMDirector
 {
 public:
 
@@ -200,6 +205,41 @@ private:
 	uint32_t GetDirectorID() const
 	{
 		return kDBPFLoadingDirectorID;
+	}
+
+	bool DoMessage(cIGZMessage2* pMsg)
+	{
+		switch (pMsg->GetType())
+		{
+		case kSC4MessagePostRegionInit:
+			PostRegionInit();
+			return true;
+		default:
+			return false;
+		}
+
+		return true;
+	}
+
+	void PostRegionInit()
+	{
+		cIGZMessageServer2Ptr pMS2;
+
+		if (pMS2)
+		{
+			pMS2->RemoveNotification(this, kSC4MessagePostRegionInit);
+		}
+
+		if (regionViewLoadTimer.IsRunning())
+		{
+			regionViewLoadTimer.Stop();
+
+			cRZBaseString message;
+			message.Sprintf("Region view loaded in %lld ms.", regionViewLoadTimer.GetElapsed<Stopwatch::TimeFormat::Milliseconds>());
+			cRZBaseString caption("SC4DBPFLoading");
+
+			SC4UI::ShowNotificationDialog(message, caption);
+		}
 	}
 
 	void EnumClassObjects(ClassObjectEnumerationCallback pCallback, void* pContext)
@@ -244,11 +284,16 @@ private:
 			{
 				SetupResourcesPatch::resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles;
 			}
+			else if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "ShowRegionViewLoadTime"sv))
+			{
+				SetupResourcesPatch::resourceLoadingTraceOption = SetupResourcesPatch::ResourceLoadingTraceOption::ShowRegionViewLoadTime;
+			}
 		}
 
 		InstallMemoryPatches();
 
-		if (SetupResourcesPatch::resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles)
+		if (SetupResourcesPatch::resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ListLoadedFiles
+			|| SetupResourcesPatch::resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ShowRegionViewLoadTime)
 		{
 			if (pFramework->GetState() < cIGZFrameWork::kStatePreAppInit)
 			{
@@ -257,6 +302,11 @@ private:
 			else
 			{
 				PreAppInit();
+			}
+
+			if (SetupResourcesPatch::resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ShowRegionViewLoadTime)
+			{
+				regionViewLoadTimer.Start();
 			}
 		}
 
@@ -325,6 +375,15 @@ private:
 				}
 			}
 		}
+		else if (SetupResourcesPatch::resourceLoadingTraceOption == SetupResourcesPatch::ResourceLoadingTraceOption::ShowRegionViewLoadTime)
+		{
+			cIGZMessageServer2Ptr pMS2;
+
+			if (pMS2)
+			{
+				pMS2->AddNotification(this, kSC4MessagePostRegionInit);
+			}			
+		}
 
 #if 0
 		cIGZFrameWork* const pFramework = RZGetFramework();
@@ -357,6 +416,8 @@ private:
 #endif
 		return true;
 	}
+
+	Stopwatch regionViewLoadTimer;
 };
 
 cRZCOMDllDirector* RZGetCOMDllDirector() {

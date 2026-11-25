@@ -44,6 +44,7 @@ It supports to following options (only 1 can be used at a time):
 * `ShowLoadTime` - shows a message box with the resource loading time in milliseconds.
 * `WinAPI` - shows message boxes before and after the resource loading code runs, this allows the user to start and stop a Process Monitor trace when the message box is shown.
 * `ListLoadedFiles` - writes the loaded DBPF files to the plugin's log file in the order SC4 reads them.
+* `ShowRegionViewLoadTime` -  shows a message box with the time to reach the region screen in milliseconds.
 
 # License
 

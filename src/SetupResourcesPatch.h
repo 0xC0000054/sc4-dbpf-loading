@@ -32,8 +32,10 @@ namespace SetupResourcesPatch
 		// and stop a program that logs the Windows API calls issued by the game.
 		// For example, Sysinternals Process Monitor.
 		WindowsAPILogWait,
-		// Writes a list of the loaded fies to the plugin's log file.
+		// Writes a list of the loaded files to the plugin's log file.
 		ListLoadedFiles,
+		// A message box will be shown with the number of milliseconds the game took to get to the region view.
+		ShowRegionViewLoadTime,
 	};
 
 	extern ResourceLoadingTraceOption resourceLoadingTraceOption;
