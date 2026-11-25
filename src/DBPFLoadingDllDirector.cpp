@@ -28,6 +28,7 @@
 #include "DatMultiPackedFile.h"
 #include "Patcher.h"
 #include "QFSDecoderHooks.h"
+#include "ReadCityThumbnailPatch.h"
 #include "SC4PluginMultiPackedFile.h"
 #include "SC4VersionDetection.h"
 #include "Stopwatch.h"
@@ -258,6 +259,7 @@ namespace
 			DBPFIndexHashPatch::Install();
 			QFSDecoderHooks::Install();
 			LooseSC4PluginScanPatch::Install();
+			ReadCityThumbnailPatch::Install();
 
 			switch (resourceLoadingTraceOption)
 			{
