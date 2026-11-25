@@ -38,6 +38,8 @@
 #include "cIGZCOM.h"
 #include "cIGZDBSegmentPackedFile.h"
 #include "cIGZFrameWork.h"
+#include "cIGZMessage2Standard.h"
+#include "cIGZMessageServer2.h"
 #include "cIGZPersistDBSegment.h"
 #include "cIGZPersistDBSegmentMultiPackedFiles.h"
 #include "cIGZPersistResourceKeyFilter.h"
@@ -45,10 +47,10 @@
 #include "cIGZPersistResourceManager.h"
 #include "cRZAutoRefCount.h"
 #include "cRZBaseString.h"
-#include "cRZCOMDllDirector.h"
+#include "cRZMessage2COMDirector.h"
 #include "cISC4App.h"
 #include "GZServPtrs.h"
-#include "SC4Preferences.h"
+#include "SC4UI.h"
 
 #include <filesystem>
 #include <memory>
@@ -159,6 +161,8 @@ namespace
 		WindowsAPILogWait,
 		// Writes a list of the loaded fies to the plugin's log file.
 		ListLoadedFiles,
+		// A message box will be shown with the number of milliseconds the game took to get to the region view.
+		ShowRegionViewLoadTime
 	};
 
 	static ResourceLoadingTraceOption resourceLoadingTraceOption = ResourceLoadingTraceOption::None;
@@ -283,7 +287,9 @@ namespace
 	}
 }
 
-class DBPFLoadingDllDirector : public cRZCOMDllDirector
+static const uint32_t kSC4MessagePostRegionInit = 0xCBB5BB45;
+
+class DBPFLoadingDllDirector : public cRZMessage2COMDirector
 {
 public:
 
@@ -302,6 +308,41 @@ private:
 	uint32_t GetDirectorID() const
 	{
 		return kDBPFLoadingDirectorID;
+	}
+
+	bool DoMessage(cIGZMessage2* pMsg)
+	{
+		switch (pMsg->GetType())
+		{
+		case kSC4MessagePostRegionInit:
+			PostRegionInit();
+			return true;
+		default:
+			return false;
+		}
+
+		return true;
+	}
+
+	void PostRegionInit()
+	{
+		cIGZMessageServer2Ptr pMS2;
+
+		if (pMS2)
+		{
+			pMS2->RemoveNotification(this, kSC4MessagePostRegionInit);
+		}
+
+		if (regionViewLoadTimer.IsRunning())
+		{
+			regionViewLoadTimer.Stop();
+
+			cRZBaseString message;
+			message.Sprintf("Region view loaded in %lld ms.", regionViewLoadTimer.GetElapsed<Stopwatch::TimeFormat::Milliseconds>());
+			cRZBaseString caption("SC4DBPFLoading");
+
+			SC4UI::ShowNotificationDialog(message, caption);
+		}
 	}
 
 	void EnumClassObjects(ClassObjectEnumerationCallback pCallback, void* pContext)
@@ -346,11 +387,16 @@ private:
 			{
 				resourceLoadingTraceOption = ResourceLoadingTraceOption::ListLoadedFiles;
 			}
+			else if (StringViewUtil::EqualsIgnoreCase(valueAsStringView, "ShowRegionViewLoadTime"sv))
+			{
+				resourceLoadingTraceOption = ResourceLoadingTraceOption::ShowRegionViewLoadTime;
+			}
 		}
 
 		InstallMemoryPatches();
 
-		if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ListLoadedFiles)
+		if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ListLoadedFiles
+			|| resourceLoadingTraceOption == ResourceLoadingTraceOption::ShowRegionViewLoadTime)
 		{
 			if (pFramework->GetState() < cIGZFrameWork::kStatePreAppInit)
 			{
@@ -359,6 +405,11 @@ private:
 			else
 			{
 				PreAppInit();
+			}
+
+			if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ShowRegionViewLoadTime)
+			{
+				regionViewLoadTimer.Start();
 			}
 		}
 
@@ -427,6 +478,15 @@ private:
 				}
 			}
 		}
+		else if (resourceLoadingTraceOption == ResourceLoadingTraceOption::ShowRegionViewLoadTime)
+		{
+			cIGZMessageServer2Ptr pMS2;
+
+			if (pMS2)
+			{
+				pMS2->AddNotification(this, kSC4MessagePostRegionInit);
+			}			
+		}
 
 #if 0
 		cIGZFrameWork* const pFramework = RZGetFramework();
@@ -459,6 +519,8 @@ private:
 #endif
 		return true;
 	}
+
+	Stopwatch regionViewLoadTimer;
 };
 
 cRZCOMDllDirector* RZGetCOMDllDirector() {
