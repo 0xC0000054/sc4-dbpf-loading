@@ -81,9 +81,6 @@
     <ClCompile Include="DBPFIndexHashPatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LooseSC4PluginScanPatch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="qfs-decoder\QFSDecoder.cpp">
       <Filter>Source Files\qfs-decoder</Filter>
     </ClCompile>
@@ -141,6 +138,18 @@
     <ClCompile Include="Preferences.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SetupResourcesPatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\SC4AutoGamePause.cpp">
+      <Filter>Source Files\GZCOM</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\ScriptedDialogWinProcBase.cpp">
+      <Filter>Source Files\GZCOM</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZBaseWinProc.cpp">
+      <Filter>Source Files\GZCOM</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="version.h">
@@ -197,9 +206,6 @@
     <ClInclude Include="qfs-decoder\QFSDecoderHooks.h">
       <Filter>Header Files\qfs-decoder</Filter>
     </ClInclude>
-    <ClInclude Include="LooseSC4PluginScanPatch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\vendor\gzcom-dll\gzcom-dll\include\cRZBaseUnknown.h">
       <Filter>Header Files\GZCOM</Filter>
     </ClInclude>
@@ -243,6 +249,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Preferences.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SetupResourcesPatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
