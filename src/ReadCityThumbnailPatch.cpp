@@ -141,9 +141,6 @@ namespace
 						*ppCityMaskBuffer = tempCityMaskBuffer;
 					}
 
-					// The original game code does not check if the optional
-					// regional transport images were successfully loaded.
-
 					if (ppRegionalTransportImageBuffer != nullptr)
 					{
 						cRZAutoRefCount<cIGZBuffer> tempRegionTransportImageBuffer;
@@ -182,6 +179,8 @@ namespace
 						}
 					}
 
+					// The original code returns true even if the
+					// regional transport thumbnails failed to load.
 					result = true;
 				}
 			}
