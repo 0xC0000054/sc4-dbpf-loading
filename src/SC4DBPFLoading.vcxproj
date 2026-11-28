@@ -34,6 +34,7 @@
     <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\StringConversion.cpp" />
     <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\StringViewUtil.cpp" />
     <ClCompile Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\src\Utf8TextOFStream.cpp" />
+    <ClCompile Include="city-thumbnails\ReadCityThumbnailPatch.cpp" />
     <ClCompile Include="cRZFileHooks.cpp" />
     <ClCompile Include="DBPFIndexHashPatch.cpp" />
     <ClCompile Include="DBPFLoadingDllDirector.cpp" />
@@ -48,7 +49,6 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="qfs-decoder\QFSDecoderHooks.cpp" />
-    <ClCompile Include="ReadCityThumbnailPatch.cpp" />
     <ClCompile Include="SC4DirectoryEnumerator.cpp" />
     <ClCompile Include="LooseSC4PluginScanPatch.cpp" />
     <ClCompile Include="ShellLinkHelper.cpp" />
@@ -73,6 +73,7 @@
     <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\Stopwatch.h" />
     <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\StringConversion.h" />
     <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\StringViewUtil.h" />
+    <ClInclude Include="city-thumbnails\ReadCityThumbnailPatch.h" />
     <ClInclude Include="cRZFileHooks.h" />
     <ClInclude Include="DBPFIndexHashPatch.h" />
     <ClInclude Include="multi-packed-file\BaseMultiPackedFile.h" />
@@ -84,7 +85,6 @@
     <ClInclude Include="Preferences.h" />
     <ClInclude Include="qfs-decoder\QFSDecoder.h" />
     <ClInclude Include="qfs-decoder\QFSDecoderHooks.h" />
-    <ClInclude Include="ReadCityThumbnailPatch.h" />
     <ClInclude Include="SC4DirectoryEnumerator.h" />
     <ClInclude Include="LooseSC4PluginScanPatch.h" />
     <ClInclude Include="ShellLinkHelper.h" />
@@ -142,7 +142,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\wil\include;..\vendor\sc4-dll-utilities\sc4-dll-utilities\include;.\;.\multi-packed-file;.\qfs-decoder</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\wil\include;..\vendor\sc4-dll-utilities\sc4-dll-utilities\include;.\;.\multi-packed-file;.\qfs-decoder;.\city-thumbnails</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -170,7 +170,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\wil\include;..\vendor\sc4-dll-utilities\sc4-dll-utilities\include;.\;.\multi-packed-file;.\qfs-decoder</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\vendor\gzcom-dll\gzcom-dll\include;..\vendor\wil\include;..\vendor\sc4-dll-utilities\sc4-dll-utilities\include;.\;.\multi-packed-file;.\qfs-decoder;.\city-thumbnails</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>

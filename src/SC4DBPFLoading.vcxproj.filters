@@ -37,6 +37,12 @@
     <Filter Include="Source Files\sc4-dll-utilities">
       <UniqueIdentifier>{8d1245d7-4bcb-40c2-9e8e-0d66060c5597}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\city-thumbnails">
+      <UniqueIdentifier>{a9e2d48a-f53e-403b-95c2-ff2740ef2ff9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\city-thumbnails">
+      <UniqueIdentifier>{ce5d27a7-a77c-4c1d-ac3b-c9781a511c3f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZBaseString.cpp">
@@ -150,8 +156,8 @@
     <ClCompile Include="..\vendor\gzcom-dll\gzcom-dll\src\cRZBaseWinProc.cpp">
       <Filter>Source Files\GZCOM</Filter>
     </ClCompile>
-    <ClCompile Include="ReadCityThumbnailPatch.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="city-thumbnails\ReadCityThumbnailPatch.cpp">
+      <Filter>Source Files\city-thumbnails</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -257,8 +263,8 @@
     <ClInclude Include="Preferences.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ReadCityThumbnailPatch.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="city-thumbnails\ReadCityThumbnailPatch.h">
+      <Filter>Header Files\city-thumbnails</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
