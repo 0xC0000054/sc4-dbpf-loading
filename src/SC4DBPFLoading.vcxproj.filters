@@ -266,6 +266,9 @@
     <ClInclude Include="city-thumbnails\ReadCityThumbnailPatch.h">
       <Filter>Header Files\city-thumbnails</Filter>
     </ClInclude>
+    <ClInclude Include="city-thumbnails\ThumbnailInstanceIDs.h">
+      <Filter>Header Files\city-thumbnails</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />

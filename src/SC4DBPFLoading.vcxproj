@@ -74,6 +74,7 @@
     <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\StringConversion.h" />
     <ClInclude Include="..\vendor\sc4-dll-utilities\sc4-dll-utilities\include\StringViewUtil.h" />
     <ClInclude Include="city-thumbnails\ReadCityThumbnailPatch.h" />
+    <ClInclude Include="city-thumbnails\ThumbnailInstanceIDs.h" />
     <ClInclude Include="cRZFileHooks.h" />
     <ClInclude Include="DBPFIndexHashPatch.h" />
     <ClInclude Include="multi-packed-file\BaseMultiPackedFile.h" />

@@ -30,25 +30,58 @@
 #include "cIGZPersistResourceManager.h"
 #include "cISC4App.h"
 #include "cRZAutoRefCount.h"
+#include "cRZBaseString.h"
 #include "cRZCOMDllDirector.h"
 #include "GZServPtrs.h"
 #include "Logger.h"
 #include "Patcher.h"
+#include "StringViewUtil.h"
+#include "ThumbnailInstanceIDs.h"
 #include <array>
 #include <memory>
 
 namespace
 {
+	using namespace std::string_view_literals;
+
+	bool IsPNGThumbnail(cIGZPersistDBSegment* pCityDBSegment, uint32_t formatLTEXTIID)
+	{
+		bool result = false;
+
+		const cGZPersistResourceKey key(kLTEXTTypeID, kThumbnailGroupID, formatLTEXTIID);
+
+		cRZAutoRefCount<cIGZPersistDBRecord> pRecord;
+
+		if (pCityDBSegment->OpenRecord(key, pRecord.AsPPObj(), cIGZFile::AccessMode::Read))
+		{
+			cRZAutoRefCount<cIGZPersistDBSerialRecord> pSerialRecord;
+
+			if (pRecord->QueryInterface(GZIID_cIGZPersistDBSerialRecord, pSerialRecord.AsPPVoid()))
+			{
+				cRZBaseString text;
+
+				if (pSerialRecord->GetFieldString(text))
+				{
+					const std::string_view textAsStringView(text.Data(), text.Strlen());
+
+					result = StringViewUtil::EndsWithIgnoreCase(textAsStringView, ".png"sv);
+				}				
+			}
+		}
+
+		return result;
+	}
+
 	bool ReadCityThumbnail(
 		cIGZGimexFactory* pGimexFactory,
 		cIGZPersistDBSegment* pCityDBSegment,
-		uint32_t imageIID,
+		const ThumbnailInstanceID& instanceIDs,
 		cIGZBuffer** ppBuffer,
 		cGZBufferColorType::eColorType colorType)
 	{
 		bool result = false;
 
-		const cGZPersistResourceKey key(0x8a2482b9, 0x4a2482bb, imageIID);
+		const cGZPersistResourceKey key(kGimexImageTypeID, kThumbnailGroupID, instanceIDs.imageInstanceID);
 
 		if (pCityDBSegment->TestForRecord(key))
 		{
@@ -59,12 +92,6 @@ namespace
 
 			if (recordSize < kMaxRecordSize)
 			{
-				// We could also use the index of the PNG handler directly, but this
-				// produces the same format detection behavior as what the original
-				// code did with the file extension of the temporary file.
-
-				constexpr uint32_t kGimexDetectFormatFromHeaderSignature = 0x32;
-
 				cRZAutoRefCount<cIGZPersistDBRecord> pRecord;
 
 				if (pCityDBSegment->OpenRecord(key, pRecord.AsPPObj(), cIGZFile::AccessMode::Read))
@@ -73,9 +100,17 @@ namespace
 
 					if (pRecord->QueryInterface(GZIID_cIGZPersistDBSerialRecord, pSerialRecord.AsPPVoid()))
 					{
+						// PNG is the 4th format in the Windows binary.
+						constexpr uint32_t kGimexIndexPNG = 0x4;
+						constexpr uint32_t kGimexIndexDetectFormatFromHeaderSignature = 0x32;
+
+						const uint32_t gimexIndex = IsPNGThumbnail(pCityDBSegment, instanceIDs.formatLTEXTInstanceID)
+							? kGimexIndexPNG
+							: kGimexIndexDetectFormatFromHeaderSignature;
+
 						result = pGimexFactory->CreateFromSerialRecord(
 							pSerialRecord,
-							kGimexDetectFormatFromHeaderSignature,
+							gimexIndex,
 							ppBuffer,
 							colorType);
 					}
@@ -112,22 +147,22 @@ namespace
 
 		if (GZCOM()->GetClassObject(GZCLSID_cIGZGimexFactory, GZIID_cIGZGimexFactory, pGF.AsPPVoid()))
 		{
-			// The odd numbered items are LTEXT records with "Temp.png".
-			// The original game code used the file extension of that
-			// string to let Gimex detect which format it needed to use
-			// when opening the temporary file.
-
-			constexpr uint32_t kCityImageIID = 0;
-			constexpr uint32_t kCityMaskIID = 2;
-			constexpr uint32_t kRegionalTransportImageIID = 4;
-			constexpr uint32_t kRegionalTransportMaskIID = 6;
-
 			cRZAutoRefCount<cIGZBuffer> tempCityImageBuffer;
 			cRZAutoRefCount<cIGZBuffer> tempCityMaskBuffer;
 
-			if (ReadCityThumbnail(pGF, pCitySaveSegment, kCityImageIID, tempCityImageBuffer.AsPPObj(), cGZBufferColorType::A8R8G8B8))
+			if (ReadCityThumbnail(
+				pGF,
+				pCitySaveSegment,
+				ThumbnailInstanceIDs::CityImage,
+				tempCityImageBuffer.AsPPObj(),
+				cGZBufferColorType::A8R8G8B8))
 			{
-				if (ReadCityThumbnail(pGF, pCitySaveSegment, kCityMaskIID, tempCityMaskBuffer.AsPPObj(), cGZBufferColorType::A8R8G8B8))
+				if (ReadCityThumbnail(
+					pGF,
+					pCitySaveSegment,
+					ThumbnailInstanceIDs::CityMask,
+					tempCityMaskBuffer.AsPPObj(),
+					cGZBufferColorType::A8R8G8B8))
 				{
 					if (tempCityImageBuffer)
 					{
@@ -148,7 +183,7 @@ namespace
 						if (ReadCityThumbnail(
 							pGF,
 							pCitySaveSegment,
-							kRegionalTransportImageIID,
+							ThumbnailInstanceIDs::RegionTransportImage,
 							tempRegionTransportImageBuffer.AsPPObj(),
 							cGZBufferColorType::A8R8G8B8))
 						{
@@ -167,7 +202,7 @@ namespace
 						if (ReadCityThumbnail(
 							pGF,
 							pCitySaveSegment,
-							kRegionalTransportMaskIID,
+							ThumbnailInstanceIDs::RegionTransportMask,
 							tempRegionTransportMaskBuffer.AsPPObj(),
 							cGZBufferColorType::A8R8G8B8))
 						{
